@@ -1,0 +1,147 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import {
+    ArrowLeft,
+    Wallet,
+    Home,
+    Gift,
+    TrendingUp,
+    ShoppingBag,
+    Users,
+    Coins,
+    User,
+    Menu,
+    X
+} from "lucide-react";
+import { useState, Suspense } from "react";
+
+const navItems = [
+    { href: "/app", label: "Dashboard", icon: Home },
+    { href: "/app/bootstrap", label: "Bootstrap", icon: Gift, badge: "Live" },
+    { href: "/app/trade", label: "Trade", icon: TrendingUp },
+    { href: "/app/lend", label: "Lend", icon: Coins, badge: "New" },
+    { href: "/app/credits", label: "Credits", icon: Gift },
+    { href: "/app/marketplace", label: "Marketplace", icon: ShoppingBag },
+    { href: "/app/leaderboard", label: "Leaderboard", icon: Users },
+    { href: "/app/profile", label: "Profile", icon: User },
+];
+
+function AppLayoutContent({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const isDemo = searchParams.get("demo") === "true";
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    return (
+        <div className="min-h-screen bg-background text-primary">
+            {/* Top Navbar */}
+            <nav className="fixed top-0 left-0 right-0 z-50 h-16 px-4 bg-background/80 backdrop-blur-xl border-b border-white/5">
+                <div className="h-full flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        {/* Mobile menu button */}
+                        <button
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            className="lg:hidden p-2 text-secondary hover:text-white"
+                        >
+                            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                        </button>
+
+                        <Link href="/" className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-orange-600 flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">SX</span>
+                            </div>
+                            <span className="text-lg font-bold text-white hidden sm:block">SynFX</span>
+                        </Link>
+
+                        {isDemo && (
+                            <div className="px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-medium">
+                                Demo Mode
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {/* Credit Balance */}
+                        <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border">
+                            <Coins className="w-4 h-4 text-accent" />
+                            <span className="text-sm font-medium text-white">12,450</span>
+                            <span className="text-xs text-secondary">credits</span>
+                        </div>
+
+                        {/* Connect Wallet Button */}
+                        <button className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-full transition-all">
+                            <Wallet className="w-4 h-4" />
+                            <span className="text-sm hidden sm:block">
+                                {isDemo ? "Demo Wallet" : "Connect Wallet"}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Sidebar */}
+            <aside className={`fixed top-16 left-0 bottom-0 w-64 bg-background border-r border-white/5 z-40 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-4 space-y-1">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.href}
+                                href={isDemo ? `${item.href}?demo=true` : item.href}
+                                onClick={() => setSidebarOpen(false)}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                                    ? 'bg-accent/10 text-accent border border-accent/20'
+                                    : 'text-secondary hover:text-white hover:bg-surface'
+                                    }`}
+                            >
+                                <item.icon className="w-5 h-5" />
+                                <span className="font-medium">{item.label}</span>
+                                {item.badge && (
+                                    <span className="ml-auto px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+                                        {item.badge}
+                                    </span>
+                                )}
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                {/* Back to Home */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 text-secondary hover:text-white transition-colors text-sm"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Back to Home</span>
+                    </Link>
+                </div>
+            </aside>
+
+            {/* Mobile overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* Main Content */}
+            <main className="lg:pl-64 pt-16 min-h-screen">
+                <div className="p-6">
+                    {children}
+                </div>
+            </main>
+        </div>
+    );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-background" />}>
+            <AppLayoutContent>{children}</AppLayoutContent>
+        </Suspense>
+    );
+}

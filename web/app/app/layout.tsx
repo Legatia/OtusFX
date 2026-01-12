@@ -13,18 +13,23 @@ import {
     Coins,
     User,
     Menu,
-    X
+    X,
+    Vault,
+    RefreshCw
 } from "lucide-react";
 import { useState, Suspense } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
     { href: "/app", label: "Dashboard", icon: Home },
     { href: "/app/bootstrap", label: "Bootstrap", icon: Gift, badge: "Live" },
     { href: "/app/trade", label: "Trade", icon: TrendingUp },
-    { href: "/app/lend", label: "Lend", icon: Coins, badge: "New" },
+    { href: "/app/vaults", label: "Vaults", icon: Vault },
+    { href: "/app/arb", label: "Arb", icon: RefreshCw },
+    { href: "/app/lend", label: "Lend", icon: Coins },
     { href: "/app/credits", label: "Credits", icon: Gift },
-    { href: "/app/marketplace", label: "Marketplace", icon: ShoppingBag },
-    { href: "/app/leaderboard", label: "Leaderboard", icon: Users },
+    { href: "/app/marketplace", label: "Shop", icon: ShoppingBag },
+    { href: "/app/leaderboard", label: "Leaders", icon: Users },
     { href: "/app/profile", label: "Profile", icon: User },
 ];
 
@@ -37,22 +42,22 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     return (
         <div className="min-h-screen bg-background text-primary">
             {/* Top Navbar */}
-            <nav className="fixed top-0 left-0 right-0 z-50 h-16 px-4 bg-background/80 backdrop-blur-xl border-b border-white/5">
+            <nav className="fixed top-0 left-0 right-0 z-50 h-16 px-4 bg-background/80 backdrop-blur-xl border-b border-border">
                 <div className="h-full flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         {/* Mobile menu button */}
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="lg:hidden p-2 text-secondary hover:text-white"
+                            className="lg:hidden p-2 text-secondary hover:text-primary"
                         >
                             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>
 
                         <Link href="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-orange-600 flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">SX</span>
+                            <div className="w-8 h-8 rounded-lg overflow-hidden">
+                                <img src="/logos/OtusFX.png" alt="OtusFX" className="w-full h-full object-contain" />
                             </div>
-                            <span className="text-lg font-bold text-white hidden sm:block">SynFX</span>
+                            <span className="text-lg font-bold text-primary hidden sm:block">OtusFX</span>
                         </Link>
 
                         {isDemo && (
@@ -65,8 +70,9 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                     <div className="flex items-center gap-4">
                         {/* Credit Balance */}
                         <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border">
+                            <ThemeToggle />
                             <Coins className="w-4 h-4 text-accent" />
-                            <span className="text-sm font-medium text-white">12,450</span>
+                            <span className="text-sm font-medium text-primary">12,450</span>
                             <span className="text-xs text-secondary">credits</span>
                         </div>
 
@@ -82,7 +88,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
             </nav>
 
             {/* Sidebar */}
-            <aside className={`fixed top-16 left-0 bottom-0 w-64 bg-background border-r border-white/5 z-40 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed top-16 left-0 bottom-0 w-64 bg-background border-r border-border z-40 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="p-4 space-y-1">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href;
@@ -93,7 +99,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                                 onClick={() => setSidebarOpen(false)}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
                                     ? 'bg-accent/10 text-accent border border-accent/20'
-                                    : 'text-secondary hover:text-white hover:bg-surface'
+                                    : 'text-secondary hover:text-primary hover:bg-surface'
                                     }`}
                             >
                                 <item.icon className="w-5 h-5" />
@@ -109,10 +115,10 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Back to Home */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5">
+                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
                     <Link
                         href="/"
-                        className="flex items-center gap-2 text-secondary hover:text-white transition-colors text-sm"
+                        className="flex items-center gap-2 text-secondary hover:text-primary transition-colors text-sm"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Back to Home</span>

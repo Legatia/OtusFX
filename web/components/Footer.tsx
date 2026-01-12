@@ -1,27 +1,25 @@
 export default function Footer() {
     return (
-        <footer className="border-t border-border bg-background py-20">
-            <div className="container px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-                <div className="flex flex-col items-start gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-sm">
-                            SX
-                        </div>
-                        <span className="font-bold text-white tracking-tight text-xl">SynFX</span>
+        <footer className="relative z-50 py-16">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 flex flex-col items-center text-center gap-6">
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg overflow-hidden">
+                        <img src="/logos/OtusFX.png" alt="OtusFX" className="w-full h-full object-contain" />
                     </div>
-                    <p className="text-secondary text-sm">
-                        The FX Layer for DeFi.
-                    </p>
+                    <span className="font-bold text-white tracking-tight text-xl">OtusFX</span>
                 </div>
+                <p className="text-secondary text-sm">
+                    Trade in the shadows. Profit in private.
+                </p>
 
-                <div className="flex gap-10 text-sm font-medium text-secondary">
+                <div className="flex gap-8 text-sm font-medium text-secondary">
                     <a href="#" className="hover:text-white transition-colors">Twitter</a>
                     <a href="#" className="hover:text-white transition-colors">Discord</a>
-                    <a href="#" className="hover:text-white transition-colors">Documentation</a>
+                    <a href="#" className="hover:text-white transition-colors">Docs</a>
                 </div>
 
                 <div className="text-xs text-secondary/50">
-                    © 2026 SynFX Protocol.
+                    © 2026 OtusFX Protocol. All rights reserved.
                 </div>
             </div>
         </footer>

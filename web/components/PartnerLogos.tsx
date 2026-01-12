@@ -78,6 +78,30 @@ export default function PartnerLogos() {
                     </div>
                 </div>
 
+                {/* ShadowWire (Radr Labs) */}
+                <div className="flex items-center gap-2">
+                    <div className="relative h-8 md:h-10 w-24 md:w-32">
+                        <Image
+                            src="/logos/radr-logo.svg"
+                            alt="ShadowWire (Radr Labs)"
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
+                </div>
+
+                {/* Privacy Cash */}
+                <div className="flex items-center gap-2">
+                    <div className="relative h-8 md:h-10 w-8 md:w-10">
+                        <Image
+                            src="/logos/Privacycash_logo.png"
+                            alt="Privacy Cash"
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
+                    <span className="text-xl md:text-2xl font-bold text-white tracking-tight">Privacy Cash</span>
+                </div>
             </div>
         </div>
     );

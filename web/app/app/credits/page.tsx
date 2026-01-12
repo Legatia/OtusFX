@@ -13,8 +13,8 @@ import {
 
 const creditStats = {
     balance: 12450,
-    tier: "Silver",
-    nextTier: "Gold",
+    tier: "Screech",
+    nextTier: "Barn",
     progress: 62,
     earnedToday: 45,
     earnedThisWeek: 312,
@@ -22,11 +22,11 @@ const creditStats = {
 };
 
 const tiers = [
-    { name: "Bronze", min: 0, color: "text-orange-400" },
-    { name: "Silver", min: 5000, color: "text-slate-300" },
-    { name: "Gold", min: 25000, color: "text-yellow-400" },
-    { name: "Platinum", min: 100000, color: "text-cyan-400" },
-    { name: "Diamond", min: 500000, color: "text-purple-400" },
+    { name: "Owlet", min: 0, color: "text-amber-400" },
+    { name: "Screech", min: 5000, color: "text-slate-300" },
+    { name: "Barn", min: 25000, color: "text-yellow-400" },
+    { name: "Snowy", min: 100000, color: "text-cyan-400" },
+    { name: "Great Horned", min: 500000, color: "text-purple-400" },
 ];
 
 const recentActivity = [
@@ -53,7 +53,7 @@ export default function CreditsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
             >
-                <h1 className="text-2xl font-bold text-white">Credits</h1>
+                <h1 className="text-2xl font-bold text-primary">Credits</h1>
                 <p className="text-secondary">Earn credits through trading, deposits, and engagement</p>
             </motion.div>
 
@@ -70,16 +70,16 @@ export default function CreditsPage() {
                             <Coins className="w-5 h-5 text-accent" />
                             <span>Total Balance</span>
                         </div>
-                        <div className="text-5xl font-bold text-white mb-4">
+                        <div className="text-5xl font-bold text-primary mb-4">
                             {creditStats.balance.toLocaleString()}
                             <span className="text-xl text-secondary ml-2">credits</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className={`px-3 py-1.5 rounded-full ${creditStats.tier === 'Silver' ? 'bg-slate-500/10 border border-slate-500/20 text-slate-300' :
-                                    creditStats.tier === 'Gold' ? 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400' :
-                                        'bg-orange-500/10 border border-orange-500/20 text-orange-400'
+                            <div className={`px-3 py-1.5 rounded-full ${creditStats.tier === 'Screech' ? 'bg-slate-500/10 border border-slate-500/20 text-slate-300' :
+                                creditStats.tier === 'Barn' ? 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400' :
+                                    'bg-amber-500/10 border border-amber-500/20 text-amber-400'
                                 } text-sm font-medium`}>
-                                {creditStats.tier} Tier
+                                🦉 {creditStats.tier}
                             </div>
                             <div className="text-secondary text-sm">
                                 {25000 - creditStats.balance} credits to {creditStats.nextTier}
@@ -91,17 +91,17 @@ export default function CreditsPage() {
                     <div className="lg:w-80">
                         <div className="flex items-center justify-between mb-2 text-sm">
                             <span className="text-secondary">Progress to {creditStats.nextTier}</span>
-                            <span className="text-white font-medium">{creditStats.progress}%</span>
+                            <span className="text-primary font-medium">{creditStats.progress}%</span>
                         </div>
                         <div className="h-3 rounded-full bg-background overflow-hidden">
                             <div
-                                className="h-full rounded-full bg-gradient-to-r from-accent to-orange-500"
+                                className="h-full rounded-full bg-gradient-to-r from-accent to-amber-500"
                                 style={{ width: `${creditStats.progress}%` }}
                             />
                         </div>
                         <div className="flex justify-between mt-2 text-xs text-secondary">
-                            <span>Silver (5K)</span>
-                            <span>Gold (25K)</span>
+                            <span>Screech (5K)</span>
+                            <span>Barn (25K)</span>
                         </div>
                     </div>
                 </div>
@@ -128,7 +128,7 @@ export default function CreditsPage() {
                 </div>
                 <div className="p-5 rounded-2xl bg-surface border border-border">
                     <div className="text-secondary text-sm mb-1">All Time</div>
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-2xl font-bold text-primary">
                         {creditStats.earnedAllTime.toLocaleString()}
                     </div>
                 </div>
@@ -142,7 +142,7 @@ export default function CreditsPage() {
                     transition={{ delay: 0.3 }}
                     className="p-6 rounded-2xl bg-surface border border-border"
                 >
-                    <h2 className="text-lg font-semibold text-white mb-4">Earning Sources</h2>
+                    <h2 className="text-lg font-semibold text-primary mb-4">Earning Sources</h2>
                     <div className="space-y-4">
                         {earningSources.map((source, index) => (
                             <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-background">
@@ -151,12 +151,12 @@ export default function CreditsPage() {
                                         <source.icon className="w-5 h-5 text-accent" />
                                     </div>
                                     <div>
-                                        <div className="font-medium text-white">{source.source}</div>
+                                        <div className="font-medium text-primary">{source.source}</div>
                                         <div className="text-xs text-secondary">{source.rate}</div>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="font-semibold text-white">{source.earned.toLocaleString()}</div>
+                                    <div className="font-semibold text-primary">{source.earned.toLocaleString()}</div>
                                     <div className="text-xs text-secondary">earned</div>
                                 </div>
                             </div>
@@ -171,14 +171,14 @@ export default function CreditsPage() {
                     transition={{ delay: 0.4 }}
                     className="p-6 rounded-2xl bg-surface border border-border"
                 >
-                    <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
+                    <h2 className="text-lg font-semibold text-primary mb-4">Recent Activity</h2>
                     <div className="space-y-3">
                         {recentActivity.map((activity, index) => (
                             <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-background">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activity.type === 'earn'
-                                            ? 'bg-emerald-500/10'
-                                            : 'bg-red-500/10'
+                                        ? 'bg-emerald-500/10'
+                                        : 'bg-red-500/10'
                                         }`}>
                                         {activity.type === 'earn'
                                             ? <ArrowUpRight className="w-4 h-4 text-emerald-400" />
@@ -186,7 +186,7 @@ export default function CreditsPage() {
                                         }
                                     </div>
                                     <div>
-                                        <div className="font-medium text-white text-sm">{activity.source}</div>
+                                        <div className="font-medium text-primary text-sm">{activity.source}</div>
                                         <div className="flex items-center gap-1 text-xs text-secondary">
                                             <Clock className="w-3 h-3" />
                                             {activity.time}

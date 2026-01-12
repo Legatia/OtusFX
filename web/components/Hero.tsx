@@ -29,7 +29,7 @@ export default function Hero() {
                     className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gradient-metallic max-w-5xl leading-[1.1]"
                 >
                     The FX Layer <br />
-                    <span className="text-white">for DeFi.</span>
+                    <span className="text-primary">for DeFi.</span>
                 </motion.h1>
 
                 {/* Subtitle */}
@@ -39,8 +39,8 @@ export default function Hero() {
                     transition={{ duration: 0.6, delay: 0.2 }}
                     className="mt-8 text-xl text-secondary max-w-2xl leading-relaxed font-light"
                 >
-                    Trade real-world currencies with <span className="text-white font-medium">25x leverage</span>.
-                    <br className="hidden md:block" /> Seamless execution on the world's fastest chains.
+                    Trade in the shadows with <span className="text-primary font-medium">encrypted positions</span>.
+                    <br className="hidden md:block" /> Silent execution, 25x leverage, zero leaks.
                 </motion.p>
 
                 {/* Buttons (Pill Shaped) */}
@@ -55,7 +55,7 @@ export default function Hero() {
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
 
-                    <button className="px-8 py-4 bg-surface text-gray-300 font-medium rounded-full border border-border hover:bg-surface-hover hover:text-white transition-all">
+                    <button className="px-8 py-4 bg-surface text-secondary font-medium rounded-full border border-border hover:bg-surface-hover hover:text-primary transition-all">
                         Read Documentation
                     </button>
                 </motion.div>
@@ -70,8 +70,8 @@ export default function Hero() {
                 </motion.div>
             </div>
 
-            {/* Bottom Interface Mockup Placeholder/Gradient Fade */}
-            <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent z-20" />
+            {/* Bottom Interface Mockup Placeholder/Gradient Fade - Removed to show background */}
+            {/* <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent z-20" /> */}
         </section>
     );
 }

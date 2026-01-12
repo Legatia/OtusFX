@@ -1,46 +1,42 @@
-# SynFX (Solana)
+# OtusFX 🦉
 
-SynFX is a privacy-first foreign exchange trading protocol on Solana, leveraging Arcium for confidential execution and Pyth for institutional-grade market data.
+> *"Trade in the shadows. Profit in private."*
+
+OtusFX is a privacy-first foreign exchange trading protocol on Solana. Named after the Otus genus of scops owls — silent hunters with night vision — we enable traders to operate unseen.
 
 ## Features
 
-- **Private Trading**: Utilizing Arcium's confidential computing (C-SPL) to hide position sizes and entry prices.
-- **Lending Pool**: Single-asset USDC lending pool allowing passive yield for lenders and leverage for traders.
-- **Institutional Data**: Real-time FX feeds via Pyth Network.
-- **MEV Protection**: Dark pool execution prevents front-running and copy-trading.
+- **Encrypted Positions**: Arcium C-SPL hides position sizes, entry prices, and liquidation levels
+- **Private Lending Pool**: Privacy Cash integration keeps balances confidential
+- **Silent Execution**: ShadowWire transfers prevent volume tracking
+- **Strategy Vaults**: Copy top traders without revealing strategies
+- **Private Arbitrage**: Inco Lightning for confidential triangular arb
+- **Institutional Data**: Real-time FX feeds via Pyth Network
+
+## Community
+
+Early supporters are called **Scops** (from scops owls). Genesis Scops are the first to seed the lending pool during Bootstrap.
 
 ## Architecture
 
 - **Frontend**: Next.js 14, Tailwind CSS, Framer Motion
 - **Settlement**: Solana (High-speed, low-cost)
-- **Privacy**: Arcium (Confidential Computing)
+- **Privacy Stack**:
+  - Arcium (Confidential positions)
+  - ShadowWire (Private transfers)
+  - Privacy Cash (Private lending)
+  - Inco Lightning (Confidential compute)
 - **Oracles**: Pyth Network
 
 ## Getting Started
 
-### Prerequisites
+```bash
+cd web
+npm install
+npm run dev
+```
 
-- Node.js 18+
-- npm or pnpm
-
-### Installation
-
-1. Navigate to the web directory:
-   ```bash
-   cd web
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000) (or 3001 if 3000 is taken)
+Open [http://localhost:3001](http://localhost:3001)
 
 ## Project Structure
 
@@ -50,7 +46,7 @@ SynFX is a privacy-first foreign exchange trading protocol on Solana, leveraging
 
 ## Bootstrap Phase
 
-The current demo includes a Bootstrap Phase UI where users can:
-- Deposit funds to seed the lending pool
-- Earn credits and unique NFT badges ("Founding Lender")
-- View real-time pool stats
+Genesis Scops can:
+- Deposit USDC to seed the lending pool
+- Earn credits and unique Genesis Scops NFT badges
+- Access exclusive tier perks (fee discounts, priority access)

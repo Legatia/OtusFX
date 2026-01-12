@@ -43,7 +43,7 @@ export default function DashboardPage() {
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             >
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+                    <h1 className="text-2xl font-bold text-primary">Dashboard</h1>
                     <p className="text-secondary">Welcome back, Trader</p>
                 </div>
                 <Link
@@ -68,7 +68,7 @@ export default function DashboardPage() {
                         <Wallet className="w-4 h-4" />
                         Portfolio Value
                     </div>
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-2xl font-bold text-primary">
                         ${portfolioStats.totalValue.toLocaleString()}
                     </div>
                 </div>
@@ -97,7 +97,7 @@ export default function DashboardPage() {
                         <Users className="w-4 h-4" />
                         Open Positions
                     </div>
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-2xl font-bold text-primary">
                         {portfolioStats.openPositions}
                     </div>
                 </div>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                     className="lg:col-span-2 p-6 rounded-2xl bg-surface border border-border"
                 >
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-white">Open Positions</h2>
+                        <h2 className="text-lg font-semibold text-primary">Open Positions</h2>
                         <Link href="/app/trade" className="text-accent text-sm hover:underline">
                             View All
                         </Link>
@@ -145,7 +145,7 @@ export default function DashboardPage() {
                                             {position.direction}
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-white">{position.pair}</div>
+                                            <div className="font-medium text-primary">{position.pair}</div>
                                             <div className="text-xs text-secondary">
                                                 {position.leverage}x • ${position.size.toLocaleString()}
                                             </div>
@@ -175,7 +175,7 @@ export default function DashboardPage() {
                         className="p-6 rounded-2xl bg-surface border border-border"
                     >
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-white">Markets</h2>
+                            <h2 className="text-lg font-semibold text-primary">Markets</h2>
                             {loading && <RefreshCw className="w-4 h-4 text-accent animate-spin" />}
                         </div>
                         <div className="space-y-3">
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                                     <Link key={symbol} href="/app/trade" className="flex items-center justify-between hover:bg-white/5 -mx-2 px-2 py-1 rounded-lg transition-colors">
                                         <span className="text-secondary">{symbol}</span>
                                         <div className="text-right">
-                                            <div className="text-white font-medium">
+                                            <div className="text-primary font-medium">
                                                 {priceData ? formatPrice(priceData.price) : '--'}
                                             </div>
                                             <div className="text-xs text-purple-400">
@@ -207,7 +207,7 @@ export default function DashboardPage() {
                     >
                         <div className="flex items-center gap-2 mb-3">
                             <Gift className="w-5 h-5 text-accent" />
-                            <h3 className="font-semibold text-white">Bootstrap Phase</h3>
+                            <h3 className="font-semibold text-primary">Bootstrap Phase</h3>
                         </div>
                         <p className="text-secondary text-sm mb-4">
                             Deposit USDC and vote for pairs to become a Founding Trader.

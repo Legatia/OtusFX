@@ -11,7 +11,8 @@ import {
     Shield,
     Sparkles,
     Award,
-    Percent
+    Percent,
+    Lock
 } from "lucide-react";
 
 const bootstrapStats = {
@@ -24,27 +25,37 @@ const bootstrapStats = {
     yourRank: null as number | null,
 };
 
+// Mock Leaderboard Data - Privacy-first (No public addresses, no public amounts)
 const leaderboard = [
-    { rank: 1, address: "0x1a2b...3c4d", amount: 150000, credits: 31500, tier: "Diamond" },
-    { rank: 2, address: "0x5e6f...7g8h", amount: 100000, credits: 21000, tier: "Diamond" },
-    { rank: 3, address: "0x9i0j...1k2l", amount: 75000, credits: 15750, tier: "Gold" },
-    { rank: 4, address: "0x3m4n...5o6p", amount: 50000, credits: 10500, tier: "Gold" },
-    { rank: 5, address: "0x7q8r...9s0t", amount: 25000, credits: 5250, tier: "Silver" },
+    { rank: 1, id: "Scops-8821", credits: 31500, tier: "Great Horned" },
+    { rank: 2, id: "Scops-4192", credits: 21000, tier: "Great Horned" },
+    { rank: 3, id: "Scops-2910", credits: 15750, tier: "Snowy" },
+    { rank: 4, id: "Scops-1102", credits: 10500, tier: "Barn" },
+    { rank: 5, id: "Scops-0581", credits: 5250, tier: "Screech" },
 ];
 
 const tiers = [
-    { name: "Diamond", icon: "💎", minRank: 1, maxRank: 10, perk: "VIP Access", discount: "50%" },
-    { name: "Gold", icon: "🥇", minRank: 11, maxRank: 100, perk: "Priority", discount: "35%" },
-    { name: "Silver", icon: "🥈", minRank: 101, maxRank: 500, perk: "Early Access", discount: "25%" },
-    { name: "Founding", icon: "🏦", minRank: 501, maxRank: null, perk: "OG Status", discount: "10%" },
+    { name: "Great Horned", icon: "🦉", minRank: 1, maxRank: 10, perk: "VIP Access", discount: "50%" },
+    { name: "Snowy", icon: "🦅", minRank: 11, maxRank: 100, perk: "Priority", discount: "35%" },
+    { name: "Barn", icon: "🐦", minRank: 101, maxRank: 500, perk: "Early Access", discount: "25%" },
+    { name: "Screech", icon: "🪶", minRank: 501, maxRank: null, perk: "OG Scops", discount: "10%" },
+];
+
+const TOKENS = [
+    { symbol: "USDC", name: "USD Coin" },
+    { symbol: "SOL", name: "Solana" },
+    { symbol: "USDT", name: "Tether" },
+    { symbol: "PYUSD", name: "PayPal USD" },
+    { symbol: "USD1", name: "Unity USD" },
 ];
 
 export default function BootstrapPage() {
     const [depositAmount, setDepositAmount] = useState("");
-    const walletBalance = 25000;
+    const [selectedToken, setSelectedToken] = useState("USDC");
+    const walletBalance = 25000; // Mock balance
 
     const handleDeposit = () => {
-        alert(`Demo: Depositing ${depositAmount} USDC to Lending Pool`);
+        alert(`Demo: Depositing ${depositAmount} ${selectedToken} to Lending Pool`);
     };
 
     const estimatedCredits = (parseFloat(depositAmount) || 0) * 21 * 0.1 * 2; // days * rate * early bird
@@ -61,8 +72,8 @@ export default function BootstrapPage() {
                         <Gift className="w-5 h-5 text-accent" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Bootstrap: Seed the Lending Pool</h1>
-                        <p className="text-secondary">Deposit USDC, earn credits, become a Founding Lender</p>
+                        <h1 className="text-2xl font-bold text-primary">Bootstrap: Seed the Lending Pool</h1>
+                        <p className="text-secondary">Deposit assets, earn credits, become a Genesis Scops</p>
                     </div>
                 </div>
             </motion.div>
@@ -77,18 +88,18 @@ export default function BootstrapPage() {
                 <div className="p-4 rounded-xl bg-surface border border-border">
                     <div className="flex items-center gap-2 text-secondary text-sm mb-1">
                         <Coins className="w-4 h-4" />
-                        Total Deposits
+                        Total Liquidity
                     </div>
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xl font-bold text-primary">
                         ${(bootstrapStats.totalDeposits / 1_000_000).toFixed(2)}M
                     </div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
                     <div className="flex items-center gap-2 text-secondary text-sm mb-1">
                         <Users className="w-4 h-4" />
-                        Lenders
+                        Genesis Scops
                     </div>
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xl font-bold text-primary">
                         {bootstrapStats.participants.toLocaleString()}
                     </div>
                 </div>
@@ -122,14 +133,30 @@ export default function BootstrapPage() {
                     className="lg:col-span-2 space-y-6"
                 >
                     <div className="p-6 rounded-2xl bg-surface border border-border">
-                        <h2 className="text-lg font-semibold text-white mb-6">Deposit to Lending Pool</h2>
+                        <h2 className="text-lg font-semibold text-primary mb-6">Deposit Liquidity</h2>
+
+                        {/* Token Selector */}
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
+                            {TOKENS.map((token) => (
+                                <button
+                                    key={token.symbol}
+                                    onClick={() => setSelectedToken(token.symbol)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedToken === token.symbol
+                                        ? "bg-primary text-background"
+                                        : "bg-surface border border-border text-secondary hover:text-primary"
+                                        }`}
+                                >
+                                    {token.symbol}
+                                </button>
+                            ))}
+                        </div>
 
                         {/* Amount Input */}
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-2">
                                 <label className="text-secondary text-sm">Amount</label>
                                 <span className="text-secondary text-sm">
-                                    Balance: ${walletBalance.toLocaleString()}
+                                    Balance: {selectedToken === "USDC" ? walletBalance.toLocaleString() : "0.00"}
                                 </span>
                             </div>
                             <div className="p-4 rounded-xl bg-background border border-white/5">
@@ -139,7 +166,7 @@ export default function BootstrapPage() {
                                         value={depositAmount}
                                         onChange={(e) => setDepositAmount(e.target.value)}
                                         placeholder="0.00"
-                                        className="flex-1 bg-transparent text-2xl font-bold text-white outline-none placeholder:text-secondary/50"
+                                        className="flex-1 bg-transparent text-2xl font-bold text-primary outline-none placeholder:text-secondary/50"
                                     />
                                     <div className="flex items-center gap-2">
                                         <button
@@ -148,12 +175,12 @@ export default function BootstrapPage() {
                                         >
                                             MAX
                                         </button>
-                                        <span className="text-white font-medium">USDC</span>
+                                        <span className="text-primary font-medium">{selectedToken}</span>
                                     </div>
                                 </div>
                             </div>
                             <div className="text-secondary text-xs mt-2">
-                                Minimum deposit: 100 USDC
+                                Minimum deposit: $100 equiv.
                             </div>
                         </div>
 
@@ -167,13 +194,16 @@ export default function BootstrapPage() {
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-secondary">Est. Yield (during bootstrap)</span>
-                                <span className="text-white font-medium">
+                                <span className="text-primary font-medium">
                                     ${((parseFloat(depositAmount) || 0) * 0.05 * (21 / 365)).toFixed(2)}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-secondary">NFT Badge</span>
-                                <span className="text-accent font-medium">Founding Lender</span>
+                                <span className="text-secondary">Privacy Status</span>
+                                <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                                    <Shield className="w-3 h-3" />
+                                    Confidential
+                                </span>
                             </div>
                         </div>
 
@@ -183,7 +213,7 @@ export default function BootstrapPage() {
                             disabled={!depositAmount || parseFloat(depositAmount) < 100}
                             className="w-full py-4 rounded-xl bg-accent hover:bg-accent-hover disabled:bg-surface disabled:text-secondary disabled:cursor-not-allowed text-white font-semibold transition-all"
                         >
-                            Deposit USDC
+                            Deposit {selectedToken}
                         </button>
 
                         {/* Info */}
@@ -191,7 +221,7 @@ export default function BootstrapPage() {
                             <div className="flex items-start gap-3">
                                 <Sparkles className="w-5 h-5 text-emerald-400 mt-0.5" />
                                 <div className="text-sm">
-                                    <p className="text-white font-medium mb-1">Earn 2x Credits This Week!</p>
+                                    <p className="text-primary font-medium mb-1">Earn 2x Credits This Week!</p>
                                     <p className="text-secondary">
                                         Early depositors get double credits. Deposit now to maximize rewards.
                                     </p>
@@ -202,14 +232,14 @@ export default function BootstrapPage() {
 
                     {/* How It Works */}
                     <div className="p-6 rounded-2xl bg-surface border border-border">
-                        <h3 className="font-semibold text-white mb-4">How It Works</h3>
+                        <h3 className="font-semibold text-primary mb-4">How It Works</h3>
                         <div className="space-y-4 text-sm">
                             <div className="flex gap-3">
                                 <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
                                     <span className="text-xs font-bold text-accent">1</span>
                                 </div>
                                 <p className="text-secondary">
-                                    Deposit USDC to seed the lending pool before trading launches
+                                    Deposit assets to seed the lending pool (auto-swaps to USDC)
                                 </p>
                             </div>
                             <div className="flex gap-3">
@@ -217,7 +247,7 @@ export default function BootstrapPage() {
                                     <span className="text-xs font-bold text-accent">2</span>
                                 </div>
                                 <p className="text-secondary">
-                                    Earn credits based on deposit amount × time × early bird bonus
+                                    Amounts are masked. Earn credits secretly.
                                 </p>
                             </div>
                             <div className="flex gap-3">
@@ -241,10 +271,10 @@ export default function BootstrapPage() {
                 >
                     <div className="p-6 rounded-2xl bg-surface border border-border">
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-semibold text-white">Top Lenders</h2>
+                            <h2 className="text-lg font-semibold text-primary">Scops Leaders</h2>
                             <div className="flex items-center gap-2 text-secondary text-sm">
-                                <Award className="w-4 h-4" />
-                                <span>NFT tier by rank</span>
+                                <Shield className="w-4 h-4 text-emerald-400" />
+                                <span className="text-emerald-400">Privacy Active</span>
                             </div>
                         </div>
 
@@ -252,11 +282,13 @@ export default function BootstrapPage() {
                             {leaderboard.map((lender) => (
                                 <div
                                     key={lender.rank}
-                                    className={`p-4 rounded-xl border transition-all ${lender.tier === "Diamond"
+                                    className={`p-4 rounded-xl border transition-all ${lender.tier === "Great Horned"
                                         ? "bg-purple-500/5 border-purple-500/20"
-                                        : lender.tier === "Gold"
-                                            ? "bg-yellow-500/5 border-yellow-500/20"
-                                            : "bg-background border-white/5"
+                                        : lender.tier === "Snowy"
+                                            ? "bg-cyan-500/5 border-cyan-500/20"
+                                            : lender.tier === "Barn"
+                                                ? "bg-yellow-500/5 border-yellow-500/20"
+                                                : "bg-background border-white/5"
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">
@@ -264,28 +296,30 @@ export default function BootstrapPage() {
                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${lender.rank <= 2
                                                 ? "bg-purple-500/10 text-purple-400"
                                                 : lender.rank <= 10
-                                                    ? "bg-yellow-500/10 text-yellow-400"
+                                                    ? "bg-cyan-500/10 text-cyan-400"
                                                     : "bg-surface text-secondary"
                                                 }`}>
                                                 #{lender.rank}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-white">{lender.address}</span>
+                                                    <span className="font-medium text-primary">{lender.id}</span>
                                                     <span className="text-sm">
-                                                        {lender.tier === "Diamond" && "💎"}
-                                                        {lender.tier === "Gold" && "🥇"}
-                                                        {lender.tier === "Silver" && "🥈"}
+                                                        {lender.tier === "Great Horned" && "🦉"}
+                                                        {lender.tier === "Snowy" && "🦅"}
+                                                        {lender.tier === "Barn" && "🐦"}
+                                                        {lender.tier === "Screech" && "🪶"}
                                                     </span>
                                                 </div>
                                                 <div className="text-xs text-secondary">
-                                                    {lender.tier} Lender
+                                                    {lender.tier} Scops
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="font-semibold text-white">
-                                                ${lender.amount.toLocaleString()}
+                                            <div className="font-semibold text-secondary flex items-center gap-1.5 justify-end">
+                                                <Lock className="w-3 h-3" />
+                                                Hidden
                                             </div>
                                             <div className="text-xs text-accent">
                                                 {lender.credits.toLocaleString()} credits
@@ -299,7 +333,7 @@ export default function BootstrapPage() {
 
                     {/* NFT Tiers */}
                     <div className="p-6 rounded-2xl bg-gradient-to-br from-accent/10 via-surface to-purple-600/10 border border-accent/20">
-                        <h3 className="text-lg font-semibold text-white mb-4">Founding Lender NFT Tiers</h3>
+                        <h3 className="text-lg font-semibold text-primary mb-4">Genesis Scops NFT Tiers</h3>
                         <div className="grid grid-cols-2 gap-4">
                             {tiers.map((tier) => (
                                 <div
@@ -308,12 +342,12 @@ export default function BootstrapPage() {
                                 >
                                     <div className="flex items-center gap-2 mb-2">
                                         <span className="text-xl">{tier.icon}</span>
-                                        <span className="font-semibold text-white">{tier.name}</span>
+                                        <span className="font-semibold text-primary">{tier.name}</span>
                                     </div>
                                     <div className="space-y-1 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-secondary">Rank</span>
-                                            <span className="text-white">
+                                            <span className="text-primary">
                                                 {tier.maxRank ? `#${tier.minRank}-${tier.maxRank}` : `#${tier.minRank}+`}
                                             </span>
                                         </div>

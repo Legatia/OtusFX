@@ -5,97 +5,105 @@ import { useState } from "react";
 import {
     Users,
     TrendingUp,
-    TrendingDown,
-    Copy,
     Check,
-    Star,
-    Filter,
-    Search
+    Search,
+    Lock,
+    EyeOff,
+    Shield,
+    Vault
 } from "lucide-react";
 
 const traders = [
     {
         id: 1,
-        name: "CryptoWhale",
-        avatar: "🐋",
-        followers: 1234,
+        traderId: "Trader #4521",
+        avatar: "🔒",
+        copiers: 47,
         winRate: 72,
-        pnl: 34500,
-        pnlPercent: 156,
-        trades: 892,
-        following: false,
-        verified: true,
+        returns30d: 15.6,
+        sharpe: 2.1,
+        maxDrawdown: -4.2,
+        vaultAUM: 234500,
+        isPrivate: true,
+        hasVault: true,
     },
     {
         id: 2,
-        name: "FXMaster",
-        avatar: "🎯",
-        followers: 892,
+        traderId: "Trader #8923",
+        avatar: "🔒",
+        copiers: 23,
         winRate: 68,
-        pnl: 28200,
-        pnlPercent: 112,
-        trades: 654,
-        following: true,
-        verified: true,
+        returns30d: 11.2,
+        sharpe: 1.8,
+        maxDrawdown: -6.1,
+        vaultAUM: 89200,
+        isPrivate: true,
+        hasVault: true,
     },
     {
         id: 3,
-        name: "PLNKing",
-        avatar: "👑",
-        followers: 567,
-        winRate: 65,
-        pnl: 18900,
-        pnlPercent: 89,
-        trades: 423,
-        following: false,
-        verified: false,
+        traderId: "Trader #2156",
+        avatar: "🔒",
+        copiers: 89,
+        winRate: 82,
+        returns30d: 8.9,
+        sharpe: 2.8,
+        maxDrawdown: -1.8,
+        vaultAUM: 456000,
+        isPrivate: true,
+        hasVault: true,
     },
     {
         id: 4,
-        name: "SafeTrader",
-        avatar: "🛡️",
-        followers: 445,
-        winRate: 78,
-        pnl: 12400,
-        pnlPercent: 45,
-        trades: 1203,
-        following: false,
-        verified: true,
+        traderId: "Trader #7734",
+        avatar: "🔒",
+        copiers: 12,
+        winRate: 65,
+        returns30d: 22.4,
+        sharpe: 1.5,
+        maxDrawdown: -8.7,
+        vaultAUM: 67800,
+        isPrivate: true,
+        hasVault: true,
     },
     {
         id: 5,
-        name: "HighRoller",
-        avatar: "🎰",
-        followers: 334,
-        winRate: 52,
-        pnl: 45600,
-        pnlPercent: 234,
-        trades: 234,
-        following: false,
-        verified: false,
+        traderId: "Trader #3891",
+        avatar: "🔒",
+        copiers: 34,
+        winRate: 71,
+        returns30d: 9.8,
+        sharpe: 2.2,
+        maxDrawdown: -3.4,
+        vaultAUM: 123000,
+        isPrivate: true,
+        hasVault: true,
     },
     {
         id: 6,
-        name: "SteadyGains",
-        avatar: "📈",
-        followers: 289,
-        winRate: 71,
-        pnl: 8900,
-        pnlPercent: 34,
-        trades: 567,
-        following: true,
-        verified: true,
+        traderId: "Trader #5567",
+        avatar: "🔒",
+        copiers: 8,
+        winRate: 58,
+        returns30d: 18.7,
+        sharpe: 1.2,
+        maxDrawdown: -12.3,
+        vaultAUM: 45600,
+        isPrivate: true,
+        hasVault: false,
     },
 ];
 
-const timeFilters = ["24h", "7d", "30d", "All Time"];
+const timeFilters = ["7d", "30d", "90d", "All"];
+const sortOptions = ["Returns", "Sharpe", "Win Rate", "AUM"];
 
 export default function LeaderboardPage() {
     const [selectedTime, setSelectedTime] = useState("30d");
+    const [selectedSort, setSelectedSort] = useState("Returns");
     const [searchQuery, setSearchQuery] = useState("");
 
     const filteredTraders = traders.filter(t =>
-        t.name.toLowerCase().includes(searchQuery.toLowerCase())
+        t.traderId.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -104,9 +112,37 @@ export default function LeaderboardPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             >
-                <h1 className="text-2xl font-bold text-white">Leaderboard</h1>
-                <p className="text-secondary">Discover and copy top traders</p>
+                <div>
+                    <h1 className="text-2xl font-bold text-primary">Private Leaderboard</h1>
+                    <p className="text-secondary">Verified performance, hidden strategies</p>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
+                    <Lock className="w-4 h-4 text-purple-400" />
+                    <span className="text-purple-400 text-sm font-medium">On-chain verified, positions hidden</span>
+                </div>
+            </motion.div>
+
+            {/* Privacy Banner */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20"
+            >
+                <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
+                        <Shield className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-primary mb-1">Privacy-First Rankings</h3>
+                        <p className="text-secondary text-sm">
+                            Performance is verified on-chain via cryptographic proofs. Trader identities are masked,
+                            positions are encrypted, and strategies remain confidential. You see returns - never trades.
+                        </p>
+                    </div>
+                </div>
             </motion.div>
 
             {/* Stats Bar */}
@@ -117,20 +153,29 @@ export default function LeaderboardPage() {
                 className="grid grid-cols-2 lg:grid-cols-4 gap-4"
             >
                 <div className="p-4 rounded-xl bg-surface border border-border">
-                    <div className="text-secondary text-sm mb-1">Total Traders</div>
-                    <div className="text-xl font-bold text-white">3,421</div>
+                    <div className="flex items-center gap-2 text-secondary text-sm mb-1">
+                        <Users className="w-4 h-4" />
+                        Verified Traders
+                    </div>
+                    <div className="text-xl font-bold text-primary">127</div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
-                    <div className="text-secondary text-sm mb-1">Active Copiers</div>
-                    <div className="text-xl font-bold text-white">1,892</div>
+                    <div className="flex items-center gap-2 text-secondary text-sm mb-1">
+                        <Vault className="w-4 h-4" />
+                        Active Vaults
+                    </div>
+                    <div className="text-xl font-bold text-primary">89</div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
-                    <div className="text-secondary text-sm mb-1">Copy Volume (30d)</div>
-                    <div className="text-xl font-bold text-white">$2.4M</div>
+                    <div className="flex items-center gap-2 text-secondary text-sm mb-1">
+                        <Lock className="w-4 h-4" />
+                        Vault TVL
+                    </div>
+                    <div className="text-xl font-bold text-primary">$2.4M</div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
-                    <div className="text-secondary text-sm mb-1">Avg Copier ROI</div>
-                    <div className="text-xl font-bold text-emerald-400">+18.4%</div>
+                    <div className="text-secondary text-sm mb-1">Avg Return (30d)</div>
+                    <div className="text-xl font-bold text-emerald-400">+14.2%</div>
                 </div>
             </motion.div>
 
@@ -138,7 +183,7 @@ export default function LeaderboardPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.15 }}
                 className="flex flex-col sm:flex-row gap-4"
             >
                 {/* Search */}
@@ -148,8 +193,8 @@ export default function LeaderboardPage() {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search traders..."
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-border focus:border-accent focus:outline-none text-white placeholder:text-secondary/50"
+                        placeholder="Search by Trader ID..."
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-border focus:border-accent focus:outline-none text-primary placeholder:text-secondary/50"
                     />
                 </div>
 
@@ -160,8 +205,8 @@ export default function LeaderboardPage() {
                             key={time}
                             onClick={() => setSelectedTime(time)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedTime === time
-                                    ? 'bg-accent text-white'
-                                    : 'bg-surface text-secondary hover:text-white'
+                                ? 'bg-accent text-white'
+                                : 'bg-surface text-secondary hover:text-white'
                                 }`}
                         >
                             {time}
@@ -170,92 +215,106 @@ export default function LeaderboardPage() {
                 </div>
             </motion.div>
 
-            {/* Traders Grid */}
+            {/* Traders Table */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-2xl bg-surface border border-border overflow-hidden"
+            >
+                {/* Table Header */}
+                <div className="grid grid-cols-7 gap-4 p-4 border-b border-white/5 text-sm font-medium text-secondary">
+                    <div>Rank</div>
+                    <div>Trader</div>
+                    <div className="text-center">Return</div>
+                    <div className="text-center">Sharpe</div>
+                    <div className="text-center">Win Rate</div>
+                    <div className="text-center">Drawdown</div>
+                    <div className="text-right">Vault</div>
+                </div>
+
+                {/* Table Rows */}
+                <div className="divide-y divide-white/5">
+                    {filteredTraders.map((trader, index) => (
+                        <motion.div
+                            key={trader.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.03 }}
+                            className="grid grid-cols-7 gap-4 p-4 items-center hover:bg-background/50 transition-colors cursor-pointer"
+                        >
+                            {/* Rank */}
+                            <div className={`text-lg font-bold ${index < 3 ? 'text-accent' : 'text-secondary'
+                                }`}>
+                                #{index + 1}
+                            </div>
+
+                            {/* Trader */}
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                    <Lock className="w-5 h-5 text-purple-400" />
+                                </div>
+                                <div>
+                                    <div className="font-medium text-primary">{trader.traderId}</div>
+                                    <div className="text-xs text-secondary flex items-center gap-1">
+                                        <EyeOff className="w-3 h-3" />
+                                        {trader.copiers} copiers
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Return */}
+                            <div className={`text-center font-semibold ${trader.returns30d >= 0 ? 'text-emerald-400' : 'text-red-400'
+                                }`}>
+                                {trader.returns30d >= 0 ? '+' : ''}{trader.returns30d}%
+                            </div>
+
+                            {/* Sharpe */}
+                            <div className="text-center text-primary font-medium">
+                                {trader.sharpe}
+                            </div>
+
+                            {/* Win Rate */}
+                            <div className="text-center text-primary font-medium">
+                                {trader.winRate}%
+                            </div>
+
+                            {/* Drawdown */}
+                            <div className="text-center text-red-400 font-medium">
+                                {trader.maxDrawdown}%
+                            </div>
+
+                            {/* Vault */}
+                            <div className="text-right">
+                                {trader.hasVault ? (
+                                    <button className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-all flex items-center gap-1 ml-auto">
+                                        <Vault className="w-3 h-3" />
+                                        ${(trader.vaultAUM / 1000).toFixed(0)}K
+                                    </button>
+                                ) : (
+                                    <span className="text-secondary text-sm">No vault</span>
+                                )}
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* What's Hidden Note */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
+                className="p-4 rounded-xl bg-background border border-white/5"
             >
-                {filteredTraders.map((trader, index) => (
-                    <motion.div
-                        key={trader.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="p-5 rounded-2xl bg-surface border border-border hover:border-accent/50 transition-all"
-                    >
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-xl bg-background flex items-center justify-center text-2xl">
-                                    {trader.avatar}
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-white">{trader.name}</span>
-                                        {trader.verified && (
-                                            <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                                                <Check className="w-3 h-3 text-white" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-1 text-secondary text-sm">
-                                        <Users className="w-3 h-3" />
-                                        <span>{trader.followers} followers</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <span className="text-secondary text-sm">#{index + 1}</span>
-                        </div>
-
-                        {/* Stats */}
-                        <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="p-3 rounded-lg bg-background text-center">
-                                <div className="text-white font-semibold">{trader.winRate}%</div>
-                                <div className="text-secondary text-xs">Win Rate</div>
-                            </div>
-                            <div className="p-3 rounded-lg bg-background text-center">
-                                <div className={`font-semibold ${trader.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                    +{trader.pnlPercent}%
-                                </div>
-                                <div className="text-secondary text-xs">ROI</div>
-                            </div>
-                            <div className="p-3 rounded-lg bg-background text-center">
-                                <div className="text-white font-semibold">{trader.trades}</div>
-                                <div className="text-secondary text-xs">Trades</div>
-                            </div>
-                        </div>
-
-                        {/* PnL */}
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-secondary text-sm">Total P&L</span>
-                            <span className={`font-bold ${trader.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                +${trader.pnl.toLocaleString()}
-                            </span>
-                        </div>
-
-                        {/* Copy Button */}
-                        <button
-                            className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${trader.following
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                    : 'bg-accent hover:bg-accent-hover text-white'
-                                }`}
-                        >
-                            {trader.following ? (
-                                <>
-                                    <Check className="w-4 h-4" />
-                                    Following
-                                </>
-                            ) : (
-                                <>
-                                    <Copy className="w-4 h-4" />
-                                    Copy Trader
-                                </>
-                            )}
-                        </button>
-                    </motion.div>
-                ))}
+                <div className="flex items-center gap-4 text-sm text-secondary">
+                    <EyeOff className="w-5 h-5 shrink-0" />
+                    <span>
+                        <strong className="text-primary">What's hidden:</strong> Wallet addresses, position details,
+                        entry/exit prices, trade history, leverage used, and exact PnL amounts.
+                        Only verified aggregate metrics are shown.
+                    </span>
+                </div>
             </motion.div>
         </div>
     );

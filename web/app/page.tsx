@@ -5,10 +5,18 @@ import Background from "@/components/Background";
 import Architecture from "@/components/Architecture";
 import Treasury from "@/components/Treasury";
 import Navbar from "@/components/Navbar";
+import Scene3D from "@/components/Scene3D";
+import MatrixRain from "@/components/MatrixRain";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col bg-background text-primary selection:bg-accent selection:text-white relative">
+    <main className="dark flex min-h-screen flex-col bg-background text-foreground selection:bg-accent selection:text-white relative">
+      {/* Matrix Rain on sides */}
+      <MatrixRain />
+      {/* 3D Scene - Limited to first viewport only */}
+      <div className="fixed top-0 left-0 right-0 h-screen z-0 pointer-events-none">
+        <Scene3D />
+      </div>
       <Navbar />
       <Background />
       <Hero />

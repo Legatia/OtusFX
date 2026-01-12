@@ -126,12 +126,12 @@ export default function MarketplacePage() {
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             >
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Marketplace</h1>
+                    <h1 className="text-2xl font-bold text-primary">Marketplace</h1>
                     <p className="text-secondary">Spend your credits on perks and upgrades</p>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border">
                     <ShoppingBag className="w-4 h-4 text-accent" />
-                    <span className="font-bold text-white">{userCredits.toLocaleString()}</span>
+                    <span className="font-bold text-primary">{userCredits.toLocaleString()}</span>
                     <span className="text-secondary text-sm">credits</span>
                 </div>
             </motion.div>
@@ -148,8 +148,8 @@ export default function MarketplacePage() {
                         key={cat.id}
                         onClick={() => setSelectedCategory(cat.id)}
                         className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat.id
-                                ? 'bg-accent text-white'
-                                : 'bg-surface text-secondary hover:text-white'
+                            ? 'bg-accent text-white'
+                            : 'bg-surface text-secondary hover:text-primary'
                             }`}
                     >
                         {cat.label}
@@ -173,8 +173,8 @@ export default function MarketplacePage() {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.05 }}
                             className={`group p-5 rounded-2xl bg-surface border transition-all ${canAfford
-                                    ? 'border-border hover:border-accent/50 cursor-pointer'
-                                    : 'border-border opacity-60'
+                                ? 'border-border hover:border-accent/50 cursor-pointer'
+                                : 'border-border opacity-60'
                                 }`}
                         >
                             {/* Badges */}
@@ -197,7 +197,7 @@ export default function MarketplacePage() {
                             </div>
 
                             {/* Content */}
-                            <h3 className="font-semibold text-white mb-1">{item.name}</h3>
+                            <h3 className="font-semibold text-primary mb-1">{item.name}</h3>
                             <p className="text-secondary text-sm mb-4">{item.description}</p>
 
                             {/* Price & Button */}
@@ -209,8 +209,8 @@ export default function MarketplacePage() {
                                 <button
                                     disabled={!canAfford}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${canAfford
-                                            ? 'bg-accent hover:bg-accent-hover text-white'
-                                            : 'bg-surface text-secondary cursor-not-allowed'
+                                        ? 'bg-accent hover:bg-accent-hover text-white'
+                                        : 'bg-surface text-secondary cursor-not-allowed'
                                         }`}
                                 >
                                     {canAfford ? 'Buy' : <Lock className="w-4 h-4" />}
@@ -228,7 +228,7 @@ export default function MarketplacePage() {
                 transition={{ delay: 0.3 }}
                 className="p-6 rounded-2xl bg-surface border border-border"
             >
-                <h2 className="text-lg font-semibold text-white mb-4">Your Active Perks</h2>
+                <h2 className="text-lg font-semibold text-primary mb-4">Your Active Perks</h2>
                 <div className="flex flex-wrap gap-3">
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                         <Check className="w-4 h-4 text-emerald-400" />

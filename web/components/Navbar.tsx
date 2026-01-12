@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 export default function Navbar() {
@@ -15,11 +16,16 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-orange-600 flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">SX</span>
+                    <div className="relative w-8 h-8">
+                        <Image
+                            src="/logos/OtusFX.png"
+                            alt="OtusFX"
+                            fill
+                            className="object-contain"
+                        />
                     </div>
-                    <span className="text-xl font-bold text-white group-hover:text-accent transition-colors">
-                        SynFX
+                    <span className="text-xl font-bold text-primary group-hover:text-accent transition-colors">
+                        OtusFX
                     </span>
                 </Link>
 
@@ -44,7 +50,7 @@ export default function Navbar() {
                         Treasury
                     </Link>
                     <a
-                        href="https://docs.synfx.xyz"
+                        href="https://docs.otusfx.xyz"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-secondary hover:text-white transition-colors text-sm font-medium"
@@ -57,7 +63,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                     <Link
                         href="/app?demo=true"
-                        className="px-5 py-2.5 bg-surface hover:bg-surface-hover border border-border text-white font-medium rounded-full transition-all text-sm"
+                        className="px-5 py-2.5 bg-surface hover:bg-surface-hover border border-border text-primary font-medium rounded-full transition-all text-sm"
                     >
                         Demo
                     </Link>
@@ -71,8 +77,8 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Glassmorphism backdrop */}
-            <div className="absolute inset-0 -z-10 bg-background/60 backdrop-blur-xl border-b border-white/5" />
+            {/* Fully transparent navbar - no backdrop */}
+            <div className="absolute inset-0 -z-10" />
         </motion.nav>
     );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
 import { TrendingUp, TrendingDown, RefreshCw, Maximize2, Minimize2, Clock } from "lucide-react";
 import { usePythPrices, formatPrice } from "@/lib/pyth";
 
@@ -28,6 +29,7 @@ interface HistoricalDataPoint {
 
 export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
     const { prices, loading, error, refetch } = usePythPrices([pair]);
+    const { theme } = useTheme();
     const [priceHistory, setPriceHistory] = useState<HistoricalDataPoint[]>([]);
     const [selectedScale, setSelectedScale] = useState(1); // 1h default
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -192,14 +194,19 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
 
         // Draw background gradient
         const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-        bgGradient.addColorStop(0, 'rgba(15, 23, 42, 0.8)');
-        bgGradient.addColorStop(1, 'rgba(15, 23, 42, 0.4)');
+        if (theme === 'light') {
+            bgGradient.addColorStop(0, '#ffffff');
+            bgGradient.addColorStop(1, '#f4f4f5');
+        } else {
+            bgGradient.addColorStop(0, 'rgba(15, 23, 42, 0.8)');
+            bgGradient.addColorStop(1, 'rgba(15, 23, 42, 0.4)');
+        }
         ctx.fillStyle = bgGradient;
         ctx.fillRect(0, 0, width, height);
 
         // Draw grid lines
         const numGridLines = 5;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.strokeStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
         ctx.lineWidth = 1;
 
         // Horizontal grid lines with price labels
@@ -214,7 +221,9 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
             ctx.lineTo(width - paddingRight, y);
             ctx.stroke();
 
-            ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+
+
+            ctx.fillStyle = theme === 'light' ? '#71717a' : 'rgba(148, 163, 184, 0.8)';
             ctx.fillText(formatAxisPrice(price), width - paddingRight + 8, y + 4);
         }
 
@@ -232,8 +241,9 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                 const index = Math.floor((i / timeGridLines) * (priceHistory.length - 1));
                 const time = priceHistory[index]?.time;
                 if (time) {
+
                     ctx.textAlign = 'center';
-                    ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+                    ctx.fillStyle = theme === 'light' ? '#71717a' : 'rgba(148, 163, 184, 0.6)';
 
                     // Format time based on scale
                     let timeLabel: string;
@@ -243,7 +253,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                     } else if (scale.seconds <= 86400) {
                         // 1d: show day + hour
                         timeLabel = time.toLocaleDateString([], { weekday: 'short' }) + ' ' +
-                                   time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     } else {
                         // 7d: show date
                         timeLabel = time.toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -337,7 +347,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
         // Draw crosshair if hovering
         if (crosshair) {
             ctx.setLineDash([4, 4]);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.strokeStyle = theme === 'light' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)';
             ctx.lineWidth = 1;
 
             ctx.beginPath();
@@ -353,7 +363,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
             ctx.setLineDash([]);
         }
 
-    }, [priceHistory, crosshair]);
+    }, [priceHistory, crosshair, theme]);
 
     useEffect(() => {
         drawChart();
@@ -413,9 +423,9 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
     if ((loading && !priceData) || isLoadingHistory) {
         return (
             <div className="h-full flex flex-col">
-                <div className="p-4 border-b border-white/5">
+                <div className="p-4 border-b border-border">
                     <div className="text-sm text-secondary">{pair}</div>
-                    <div className="text-2xl font-bold text-white">--</div>
+                    <div className="text-2xl font-bold text-primary">--</div>
                 </div>
                 <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-surface to-background">
                     <div className="text-center">
@@ -454,7 +464,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
     return (
         <div ref={containerRef} className={`h-full flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : ''}`}>
             {/* Chart Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+            <div className="p-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div>
                         <div className="text-sm text-secondary">{pair}</div>
@@ -463,7 +473,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                                 key={priceData?.price}
                                 initial={{ opacity: 0.5, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="text-2xl font-bold text-white"
+                                className="text-2xl font-bold text-primary"
                             >
                                 {priceData ? formatPrice(priceData.price) : '--'}
                             </motion.span>
@@ -488,18 +498,18 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
 
                     {/* Crosshair info */}
                     {crosshair && (
-                        <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-white/5 text-sm">
+                        <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-surface border border-border text-sm">
                             <span className="text-secondary">
                                 {crosshair.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </span>
-                            <span className="text-white font-medium">{formatAxisPrice(crosshair.price)}</span>
+                            <span className="text-primary font-medium">{formatAxisPrice(crosshair.price)}</span>
                         </div>
                     )}
                 </div>
 
                 <div className="flex items-center gap-2">
                     {/* Time Scale Selector */}
-                    <div className="flex rounded-lg bg-white/5 p-0.5">
+                    <div className="flex rounded-lg bg-surface p-0.5 border border-border">
                         {TIME_SCALES.map((s, i) => (
                             <button
                                 key={s.label}
@@ -507,7 +517,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                                 disabled={isLoadingHistory}
                                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all disabled:opacity-50 ${selectedScale === i
                                     ? 'bg-accent text-white'
-                                    : 'text-secondary hover:text-white'
+                                    : 'text-secondary hover:text-primary'
                                     }`}
                             >
                                 {s.label}
@@ -519,18 +529,18 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                     <div className="hidden sm:flex items-center gap-4 text-sm px-3">
                         <div>
                             <span className="text-secondary">H: </span>
-                            <span className="text-white">{priceData ? formatPrice(priceData.high24h) : '--'}</span>
+                            <span className="text-primary">{priceData ? formatPrice(priceData.high24h) : '--'}</span>
                         </div>
                         <div>
                             <span className="text-secondary">L: </span>
-                            <span className="text-white">{priceData ? formatPrice(priceData.low24h) : '--'}</span>
+                            <span className="text-primary">{priceData ? formatPrice(priceData.low24h) : '--'}</span>
                         </div>
                     </div>
 
                     {/* Fullscreen toggle */}
                     <button
                         onClick={() => setIsFullscreen(!isFullscreen)}
-                        className="p-2 rounded-lg hover:bg-white/5 text-secondary hover:text-white transition-colors"
+                        className="p-2 rounded-lg hover:bg-surface text-secondary hover:text-primary transition-colors"
                     >
                         {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                     </button>
@@ -543,7 +553,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-surface to-background">
                         <div className="text-center max-w-xs">
                             <RefreshCw className="w-8 h-8 text-accent/50 mx-auto mb-3 animate-spin" />
-                            <p className="text-white/80 text-sm font-medium mb-1">
+                            <p className="text-primary/80 text-sm font-medium mb-1">
                                 {historyError || 'Loading chart data...'}
                             </p>
                             <p className="text-secondary/50 text-xs">
@@ -554,7 +564,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                             </p>
                             {priceHistory.length === 0 && (
                                 <p className="text-secondary/40 text-xs mt-2">
-                                    Run <code className="bg-white/10 px-1 rounded">npm run collect-prices</code> to build history
+                                    Run <code className="bg-surface px-1 rounded">npm run collect-prices</code> to build history
                                 </p>
                             )}
                         </div>

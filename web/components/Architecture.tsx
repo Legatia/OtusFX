@@ -50,7 +50,7 @@ export default function Architecture() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.1 }}
-                    className="text-4xl md:text-5xl font-bold text-white mb-6"
+                    className="text-4xl md:text-5xl font-bold text-primary mb-6"
                 >
                     Institutional-Grade <br />
                     <span className="text-secondary">Infrastructure.</span>
@@ -84,10 +84,10 @@ export default function Architecture() {
                         </div>
 
                         <div className="text-center px-4">
-                            <div className="inline-block px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-secondary mb-4">
+                            <div className="inline-block px-3 py-1 rounded-full border border-primary/10 bg-primary/5 text-xs font-mono text-secondary mb-4">
                                 STEP {step.id}
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                            <h3 className="text-xl font-bold text-primary mb-3">{step.title}</h3>
                             <p className="text-secondary text-sm leading-relaxed">{step.description}</p>
                         </div>
                     </motion.div>

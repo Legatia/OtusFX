@@ -23,6 +23,7 @@
     "@solana/web3.js": "^1.98.4",
     "@types/three": "^0.182.0",
     "better-sqlite3": "^12.5.0",
+    "bs58": "^6.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.24.11",
     "helius-sdk": "^2.0.5",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/bs58": "^4.0.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

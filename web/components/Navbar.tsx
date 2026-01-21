@@ -1,84 +1,151 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
+import { useState } from "react";
+
+const navLinks = [
+    { href: "#privacy", label: "Privacy" },
+    { href: "#how-it-works", label: "How It Works" },
+    { href: "#deleverage", label: "Protection" },
+    { href: "#otus", label: "$OTUS" },
+];
 
 export default function Navbar() {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
     return (
-        <motion.nav
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="fixed top-0 left-0 right-0 z-50 px-4 py-4"
-        >
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
-                {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 group">
-                    <div className="relative w-8 h-8">
-                        <Image
-                            src="/logos/OtusFX.png"
-                            alt="OtusFX"
-                            fill
-                            className="object-contain"
-                        />
+        <>
+            <motion.nav
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="fixed top-0 left-0 right-0 z-50 px-4 py-4"
+            >
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    {/* Logo */}
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="relative w-8 h-8">
+                            <Image
+                                src="/logos/OtusFX.png"
+                                alt="OtusFX"
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                        <span className="text-xl font-bold text-primary group-hover:text-accent transition-colors">
+                            OtusFX
+                        </span>
+                    </Link>
+
+                    {/* Desktop Nav Links */}
+                    <div className="hidden md:flex items-center gap-8">
+                        {navLinks.map((link) => (
+                            <a
+                                key={link.href}
+                                href={link.href}
+                                className="text-secondary hover:text-white transition-colors text-sm font-medium"
+                            >
+                                {link.label}
+                            </a>
+                        ))}
+                        <a
+                            href="https://docs.otusfx.xyz"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-secondary hover:text-white transition-colors text-sm font-medium"
+                        >
+                            Docs
+                        </a>
                     </div>
-                    <span className="text-xl font-bold text-primary group-hover:text-accent transition-colors">
-                        OtusFX
-                    </span>
-                </Link>
 
-                {/* Nav Links */}
-                <div className="hidden md:flex items-center gap-8">
-                    <Link
-                        href="#features"
-                        className="text-secondary hover:text-white transition-colors text-sm font-medium"
-                    >
-                        Features
-                    </Link>
-                    <Link
-                        href="#architecture"
-                        className="text-secondary hover:text-white transition-colors text-sm font-medium"
-                    >
-                        How It Works
-                    </Link>
-                    <Link
-                        href="#treasury"
-                        className="text-secondary hover:text-white transition-colors text-sm font-medium"
-                    >
-                        Treasury
-                    </Link>
-                    <a
-                        href="https://docs.otusfx.xyz"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-secondary hover:text-white transition-colors text-sm font-medium"
-                    >
-                        Docs
-                    </a>
+                    {/* Buttons */}
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/demo"
+                            className="hidden sm:block px-5 py-2.5 bg-surface hover:bg-surface-hover border border-border text-primary font-medium rounded-full transition-all text-sm"
+                        >
+                            Demo
+                        </Link>
+                        <Link
+                            href="/app"
+                            className="group flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-full transition-all shadow-[0_0_20px_-5px_rgba(255,102,26,0.4)] hover:shadow-[0_0_30px_-5px_rgba(255,102,26,0.6)]"
+                        >
+                            <span className="text-sm">Launch App</span>
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="md:hidden p-2 text-secondary hover:text-white transition-colors"
+                        >
+                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                        </button>
+                    </div>
                 </div>
 
-                {/* Buttons */}
-                <div className="flex items-center gap-3">
-                    <Link
-                        href="/app?demo=true"
-                        className="px-5 py-2.5 bg-surface hover:bg-surface-hover border border-border text-primary font-medium rounded-full transition-all text-sm"
-                    >
-                        Demo
-                    </Link>
-                    <Link
-                        href="/app"
-                        className="group flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-full transition-all shadow-[0_0_20px_-5px_rgba(255,102,26,0.4)] hover:shadow-[0_0_30px_-5px_rgba(255,102,26,0.6)]"
-                    >
-                        <span className="text-sm">Launch App</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
-                </div>
-            </div>
+                {/* Fully transparent navbar - no backdrop */}
+                <div className="absolute inset-0 -z-10" />
+            </motion.nav>
 
-            {/* Fully transparent navbar - no backdrop */}
-            <div className="absolute inset-0 -z-10" />
-        </motion.nav>
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-40 md:hidden"
+                    >
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                            onClick={() => setMobileMenuOpen(false)}
+                        />
+
+                        {/* Menu Panel */}
+                        <motion.div
+                            initial={{ x: "100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            className="absolute right-0 top-0 bottom-0 w-72 bg-background border-l border-border p-6 pt-20"
+                        >
+                            <div className="flex flex-col gap-4">
+                                {navLinks.map((link) => (
+                                    <a
+                                        key={link.href}
+                                        href={link.href}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="text-lg text-secondary hover:text-white transition-colors py-2"
+                                    >
+                                        {link.label}
+                                    </a>
+                                ))}
+                                <a
+                                    href="https://docs.otusfx.xyz"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-lg text-secondary hover:text-white transition-colors py-2"
+                                >
+                                    Docs
+                                </a>
+                                <hr className="border-border my-2" />
+                                <Link
+                                    href="/demo"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="text-lg text-secondary hover:text-white transition-colors py-2"
+                                >
+                                    Try Demo
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 }

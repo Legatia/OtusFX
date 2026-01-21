@@ -21,7 +21,7 @@ export default function Treasury() {
                             viewport={{ once: true }}
                         >
                             <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-                                25x Leverage. <br />
+                                Dynamic Leverage. <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-yellow-500">
                                     Real Yield Backed.
                                 </span>
@@ -47,7 +47,7 @@ export default function Treasury() {
                                     </div>
                                     <div>
                                         <h4 className="text-white font-medium">Borrow Interest (8% APY)</h4>
-                                        <p className="text-sm text-secondary">Leveraged traders pay interest on borrowed USDC.</p>
+                                        <p className="text-sm text-secondary">Leveraged traders pay interest on borrowed stablecoins.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -77,10 +77,11 @@ export default function Treasury() {
                             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50" />
 
                             <div className="relative z-10">
-                                <span className="text-secondary text-sm font-mono uppercase tracking-wider">Total Leverage Power</span>
-                                <div className="text-7xl md:text-8xl font-bold text-white tracking-tighter mt-2 group-hover:text-accent transition-colors duration-500">
-                                    25<span className="text-4xl align-top text-gray-500">x</span>
+                                <span className="text-secondary text-sm font-mono uppercase tracking-wider">Risk-Adjusted Leverage</span>
+                                <div className="text-5xl md:text-6xl font-bold text-white tracking-tighter mt-2 group-hover:text-accent transition-colors duration-500">
+                                    Up to 20<span className="text-3xl align-top text-gray-500">x</span>
                                 </div>
+                                <p className="text-xs text-gray-500 mt-2">Scales with pool utilization</p>
                             </div>
 
                             <div className="relative z-10 p-6 rounded-3xl bg-black/40 border border-white/5 mt-auto backdrop-blur-md">

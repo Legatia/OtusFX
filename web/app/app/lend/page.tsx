@@ -10,21 +10,12 @@ import {
     Lock,
     Shield,
     Info,
-    Percent
+    Percent,
+    Loader2
 } from "lucide-react";
+import { useLendingPool } from "@/hooks/useLendingPool";
 
-// Mock pool data
-const poolStats = {
-    totalDeposits: 2_450_000,
-    totalBorrowed: 1_837_500,
-    utilizationRate: 75,
-    lenderAPY: 5.2,
-    borrowRate: 8.1,
-    yourDeposit: 10_000,
-    yourEarnings: 43.50,
-};
-
-// Interest rate model visualization data
+// Interest rate model visualization data (static model)
 const utilizationPoints = [
     { util: 0, rate: 2 },
     { util: 20, rate: 3 },
@@ -38,15 +29,34 @@ const utilizationPoints = [
 ];
 
 export default function LendPage() {
+    const { poolStats, walletBalance, loading, deposit, withdraw } = useLendingPool();
     const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
     const [amount, setAmount] = useState("");
-    const walletBalance = 25_000; // Mock wallet balance
+    const [submitting, setSubmitting] = useState(false);
 
     const handleMaxClick = () => {
         if (activeTab === "deposit") {
             setAmount(walletBalance.toString());
         } else {
-            setAmount(poolStats.yourDeposit.toString());
+            setAmount(poolStats.userShares.toString());
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!amount || Number(amount) <= 0) return;
+        setSubmitting(true);
+        try {
+            if (activeTab === "deposit") {
+                await deposit(Number(amount));
+            } else {
+                await withdraw(Number(amount));
+            }
+            setAmount("");
+        } catch (e) {
+            console.error("Transaction failed:", e);
+            alert("Transaction failed. Check console for details.");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -150,10 +160,10 @@ export default function LendPage() {
                         Your Deposit
                     </div>
                     <div className="text-2xl font-bold text-primary">
-                        ${poolStats.yourDeposit.toLocaleString()}
+                        ${poolStats.userDeposit.toLocaleString()}
                     </div>
                     <div className="text-xs text-emerald-400 mt-1">
-                        +${poolStats.yourEarnings.toFixed(2)} earned
+                        +${poolStats.userEarnings.toFixed(2)} earned
                     </div>
                 </div>
             </motion.div>
@@ -199,7 +209,7 @@ export default function LendPage() {
                                 <span className="text-secondary text-sm">
                                     Balance: ${activeTab === "deposit"
                                         ? walletBalance.toLocaleString()
-                                        : poolStats.yourDeposit.toLocaleString()
+                                        : poolStats.userDeposit.toLocaleString()
                                     }
                                 </span>
                             </div>

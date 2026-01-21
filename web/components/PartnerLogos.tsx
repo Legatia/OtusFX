@@ -66,17 +66,6 @@ export default function PartnerLogos() {
                     </div>
                 </div>
 
-                {/* Inco */}
-                <div className="flex items-center gap-3">
-                    <div className="relative h-8 md:h-10 w-20 md:w-24">
-                        <Image
-                            src="/logos/inco.svg"
-                            alt="Inco"
-                            fill
-                            className="object-contain"
-                        />
-                    </div>
-                </div>
 
                 {/* ShadowWire (Radr Labs) */}
                 <div className="flex items-center gap-2">

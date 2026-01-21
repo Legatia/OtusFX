@@ -12,54 +12,28 @@ import {
     Shield,
     Play,
     Check,
-    Clock
+    Clock,
+    Loader2
 } from "lucide-react";
-
-// Mock arb opportunities
-const opportunities = [
-    {
-        id: 1,
-        legs: ["EUR/USD", "USD/JPY", "EUR/JPY"],
-        estimatedProfit: 0.12,
-        confidence: "High",
-        status: "available",
-        expiresIn: 45,
-    },
-    {
-        id: 2,
-        legs: ["GBP/USD", "USD/CHF", "GBP/CHF"],
-        estimatedProfit: 0.08,
-        confidence: "Medium",
-        status: "available",
-        expiresIn: 23,
-    },
-    {
-        id: 3,
-        legs: ["AUD/USD", "USD/JPY", "AUD/JPY"],
-        estimatedProfit: 0.05,
-        confidence: "Low",
-        status: "available",
-        expiresIn: 12,
-    },
-];
-
-const executedArbs = [
-    { id: 101, legs: ["EUR/USD", "USD/JPY", "EUR/JPY"], profit: 0.11, time: "2 min ago", size: 5000 },
-    { id: 102, legs: ["GBP/USD", "USD/CHF", "GBP/CHF"], profit: 0.09, time: "15 min ago", size: 3000 },
-    { id: 103, legs: ["EUR/USD", "USD/CHF", "EUR/CHF"], profit: 0.14, time: "1 hour ago", size: 10000 },
-];
-
-const stats = {
-    totalProfit: 234.50,
-    totalTrades: 47,
-    winRate: 94,
-    avgProfit: 0.09,
-};
+import { useArbitrage } from "@/hooks/useArbitrage";
 
 export default function ArbPage() {
-    const [selectedOpp, setSelectedOpp] = useState<typeof opportunities[0] | null>(null);
+    const { opportunities, executedArbs, stats, loading, executeArb, refresh } = useArbitrage();
+    const [selectedOpp, setSelectedOpp] = useState<any>(null);
     const [arbSize, setArbSize] = useState("1000");
     const [showHidden, setShowHidden] = useState(false);
+    const [executing, setExecuting] = useState(false);
+
+    const handleExecuteArb = async (opp: any) => {
+        setExecuting(true);
+        try {
+            await executeArb(opp, Number(arbSize));
+        } catch (e) {
+            console.error("Arb execution failed:", e);
+        } finally {
+            setExecuting(false);
+        }
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
@@ -78,9 +52,9 @@ export default function ArbPage() {
                         <Lock className="w-4 h-4 text-blue-400" />
                         <span className="text-blue-400 text-sm font-medium">Inco Protected</span>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                        <Zap className="w-4 h-4 text-emerald-400" />
-                        <span className="text-emerald-400 text-sm font-medium">MEV-Free</span>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
+                        <Shield className="w-4 h-4 text-purple-400" />
+                        <span className="text-purple-400 text-sm font-medium">Strategy Private</span>
                     </div>
                 </div>
             </motion.div>
@@ -127,11 +101,11 @@ export default function ArbPage() {
                         <Shield className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-primary mb-1">Confidential Arbitrage</h3>
+                        <h3 className="font-semibold text-primary mb-1">Strategy Privacy</h3>
                         <p className="text-secondary text-sm">
-                            Arb opportunities are detected and executed via Inco Lightning.
-                            Nobody can see your opportunities, front-run your trades, or copy your strategy.
-                            All execution happens in encrypted compute.
+                            Your arbitrage strategies run in encrypted compute via Inco Lightning.
+                            Nobody can analyze your patterns, copy your signals, or see what opportunities you're exploiting.
+                            Oracle-based pricing (Pyth) means no slippage—pure alpha protection.
                         </p>
                     </div>
                 </div>
@@ -182,15 +156,21 @@ export default function ArbPage() {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4 text-sm">
                                         <span className="text-emerald-400 font-medium">
-                                            {showHidden ? `+${opp.estimatedProfit}%` : "🔒"}
+                                            {showHidden ? `+${opp.estimatedProfit.toFixed(3)}%` : "🔒"}
                                         </span>
-                                        <span className="text-secondary flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            {opp.expiresIn}s
+                                        <span className={`px-2 py-0.5 rounded text-xs ${opp.confidence === 'High' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                opp.confidence === 'Medium' ? 'bg-yellow-500/10 text-yellow-400' :
+                                                    'bg-gray-500/10 text-gray-400'
+                                            }`}>
+                                            {opp.confidence}
                                         </span>
                                     </div>
-                                    <button className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-all flex items-center gap-1">
-                                        <Play className="w-3 h-3" />
+                                    <button
+                                        onClick={() => handleExecuteArb(opp)}
+                                        disabled={executing}
+                                        className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-all flex items-center gap-1 disabled:opacity-50"
+                                    >
+                                        {executing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
                                         Execute
                                     </button>
                                 </div>
@@ -277,7 +257,7 @@ export default function ArbPage() {
                         </div>
                         <h3 className="font-medium text-primary mb-1">Profit</h3>
                         <p className="text-secondary text-sm">
-                            Profit accrues privately to your account - no MEV extraction possible
+                            Your strategy alpha stays private—no one can analyze your arb patterns or copy your edge
                         </p>
                     </div>
                 </div>

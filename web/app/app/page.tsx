@@ -14,20 +14,19 @@ import {
 } from "lucide-react";
 import { usePythPrices, formatPrice } from "@/lib/pyth";
 
-// Mock data for demo
+// Production: Portfolio stats come from summing user positions
+// TODO: Integrate with usePositions and useBootstrap hooks for real data
 const portfolioStats = {
-    totalValue: 15420.50,
-    pnl: 1245.30,
-    pnlPercent: 8.78,
-    openPositions: 3,
-    credits: 12450,
+    totalValue: 0,          // Sum of margin + unrealized PnL
+    pnl: 0,                 // Total unrealized PnL
+    pnlPercent: 0,          // PnL as percent of deposits
+    openPositions: 0,       // Count from usePositions
+    credits: 0,             // From useCredits hook
 };
 
-const positions = [
-    { pair: "EUR/USD", direction: "Long", size: 5000, leverage: 10, pnl: 234.50, pnlPercent: 4.69, entry: 1.0850, current: 1.0901 },
-    { pair: "GBP/USD", direction: "Short", size: 3000, leverage: 5, pnl: -87.20, pnlPercent: -2.91, entry: 1.2720, current: 1.2757 },
-    { pair: "USD/JPY", direction: "Long", size: 7000, leverage: 10, pnl: 156.80, pnlPercent: 2.24, entry: 148.50, current: 148.83 },
-];
+// Production: Positions come from usePositions hook
+// Empty array shows real empty state
+const positions: any[] = [];
 
 const pairSymbols = ["EUR/USD", "GBP/USD", "USD/JPY", "AUD/USD"];
 

@@ -11,14 +11,15 @@ import {
     Clock
 } from "lucide-react";
 
+// TODO: Integrate with useCredits hook for real balance and tier
 const creditStats = {
-    balance: 12450,
-    tier: "Screech",
-    nextTier: "Barn",
-    progress: 62,
-    earnedToday: 45,
-    earnedThisWeek: 312,
-    earnedAllTime: 12450,
+    balance: 0,
+    tier: "Owlet",
+    nextTier: "Screech",
+    progress: 0,
+    earnedToday: 0,
+    earnedThisWeek: 0,
+    earnedAllTime: 0,
 };
 
 const tiers = [
@@ -29,20 +30,14 @@ const tiers = [
     { name: "Great Horned", min: 500000, color: "text-purple-400" },
 ];
 
-const recentActivity = [
-    { type: "earn", source: "Trading Volume", amount: 125, time: "2 hours ago" },
-    { type: "earn", source: "Deposit Bonus", amount: 50, time: "5 hours ago" },
-    { type: "spend", source: "Fee Discount Pack", amount: -500, time: "1 day ago" },
-    { type: "earn", source: "Daily Login", amount: 10, time: "1 day ago" },
-    { type: "earn", source: "Referral Bonus", amount: 200, time: "2 days ago" },
-    { type: "spend", source: "Leverage Unlock", amount: -1000, time: "3 days ago" },
-];
+// Activity history requires indexer
+const recentActivity: any[] = [];
 
 const earningSources = [
-    { source: "Trading", icon: TrendingUp, rate: "10 credits per $1K volume", earned: 8420 },
-    { source: "Deposits", icon: Coins, rate: "0.1 credits per USDC/day", earned: 2340 },
-    { source: "Referrals", icon: Users, rate: "10% of referee earnings", earned: 890 },
-    { source: "Bootstrap", icon: Gift, rate: "Bonus multipliers", earned: 800 },
+    { source: "Trading", icon: TrendingUp, rate: "10 credits per $1K volume", earned: 0 },
+    { source: "Deposits", icon: Coins, rate: "0.1 credits per USDC/day", earned: 0 },
+    { source: "Referrals", icon: Users, rate: "10% of referee earnings", earned: 0 },
+    { source: "Bootstrap", icon: Gift, rate: "Bonus multipliers", earned: 0 },
 ];
 
 export default function CreditsPage() {

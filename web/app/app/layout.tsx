@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
     ArrowLeft,
     Wallet,
@@ -15,18 +15,23 @@ import {
     Menu,
     X,
     Vault,
-    RefreshCw
+    RefreshCw,
+    ArrowDownUp,
+    Lock
 } from "lucide-react";
 import { useState, Suspense } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 const navItems = [
     { href: "/app", label: "Dashboard", icon: Home },
     { href: "/app/bootstrap", label: "Bootstrap", icon: Gift, badge: "Live" },
     { href: "/app/trade", label: "Trade", icon: TrendingUp },
     { href: "/app/vaults", label: "Vaults", icon: Vault },
-    { href: "/app/arb", label: "Arb", icon: RefreshCw },
+    // { href: "/app/arb", label: "Arb", icon: RefreshCw }, // Hidden: revisit when app token launches
     { href: "/app/lend", label: "Lend", icon: Coins },
+    { href: "/app/swap", label: "Swap OTUS", icon: ArrowDownUp },
+    { href: "/app/stake", label: "Stake OTUS", icon: Lock },
     { href: "/app/credits", label: "Credits", icon: Gift },
     { href: "/app/marketplace", label: "Shop", icon: ShoppingBag },
     { href: "/app/leaderboard", label: "Leaders", icon: Users },
@@ -35,8 +40,6 @@ const navItems = [
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const isDemo = searchParams.get("demo") === "true";
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
@@ -60,11 +63,10 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                             <span className="text-lg font-bold text-primary hidden sm:block">OtusFX</span>
                         </Link>
 
-                        {isDemo && (
-                            <div className="px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-medium">
-                                Demo Mode
-                            </div>
-                        )}
+                        {/* Live Mode Badge */}
+                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+                            Live
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -76,13 +78,10 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                             <span className="text-xs text-secondary">credits</span>
                         </div>
 
+
+
                         {/* Connect Wallet Button */}
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-full transition-all">
-                            <Wallet className="w-4 h-4" />
-                            <span className="text-sm hidden sm:block">
-                                {isDemo ? "Demo Wallet" : "Connect Wallet"}
-                            </span>
-                        </button>
+                        <WalletMultiButton className="!bg-accent hover:!bg-accent-hover !text-white !font-medium !rounded-full !transition-all !h-10 !px-5" />
                     </div>
                 </div>
             </nav>
@@ -95,7 +94,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                         return (
                             <Link
                                 key={item.href}
-                                href={isDemo ? `${item.href}?demo=true` : item.href}
+                                href={item.href}
                                 onClick={() => setSidebarOpen(false)}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
                                     ? 'bg-accent/10 text-accent border border-accent/20'

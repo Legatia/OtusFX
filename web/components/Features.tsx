@@ -7,7 +7,7 @@ import clsx from "clsx";
 const features = [
     {
         title: "Confidential Trading",
-        description: "Hide position sizes, entry prices, and liquidation levels. No front-running, no stop hunting.",
+        description: "Hide position sizes, entry prices, and liquidation levels. Keep your strategy private from copycats.",
         icon: EyeOff,
     },
     {
@@ -16,13 +16,13 @@ const features = [
         icon: Lock,
     },
     {
-        title: "MEV Protection",
-        description: "Dark pool execution with batch auctions. Your trades settle at fair prices, not MEV-extracted prices.",
+        title: "Strategy Privacy",
+        description: "Oracle-based execution via Pyth means no slippage. Your trading patterns stay invisible to the market.",
         icon: Shield,
     },
     {
         title: "Major FX Pairs",
-        description: "Trade EUR/USD, GBP/USD, USD/JPY and cross pairs with up to 25x leverage. Powered by Pyth oracles.",
+        description: "Trade EUR/USD, GBP/USD, USD/JPY and cross pairs with dynamic leverage up to 20x. Powered by Pyth oracles.",
         icon: CircleDollarSign,
     },
 ];
@@ -33,7 +33,7 @@ export default function Features() {
             <div className="mb-20 text-center max-w-2xl mx-auto">
                 <h2 className="text-4xl md:text-5xl font-bold text-primary mb-6 tracking-tight">Built for Privacy</h2>
                 <p className="text-secondary text-xl font-light">
-                    Trade confidently with encrypted positions and MEV-protected execution.
+                    Trade confidently with encrypted positions and strategy-protected execution.
                 </p>
             </div>
 

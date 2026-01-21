@@ -2,8 +2,12 @@ import Hero from "@/components/Hero";
 import Features from "@/components/Features";
 import Footer from "@/components/Footer";
 import Background from "@/components/Background";
+import PrivacyExplainer from "@/components/PrivacyExplainer";
 import Architecture from "@/components/Architecture";
 import Treasury from "@/components/Treasury";
+import AutoDeleverage from "@/components/AutoDeleverage";
+import OtusToken from "@/components/OtusToken";
+import FinalCTA from "@/components/FinalCTA";
 import Navbar from "@/components/Navbar";
 import Scene3D from "@/components/Scene3D";
 import MatrixRain from "@/components/MatrixRain";
@@ -20,9 +24,13 @@ export default function Home() {
       <Navbar />
       <Background />
       <Hero />
+      <PrivacyExplainer />
       <Architecture />
       <Treasury />
+      <AutoDeleverage />
+      <OtusToken />
       <Features />
+      <FinalCTA />
       <Footer />
     </main>
   );

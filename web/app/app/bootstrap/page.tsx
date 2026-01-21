@@ -15,25 +15,10 @@ import {
     Lock
 } from "lucide-react";
 
-const bootstrapStats = {
-    totalDeposits: 2_450_000,
-    participants: 523,
-    daysRemaining: 12,
-    estimatedAPY: 5.2,
-    yourDeposit: 0,
-    yourCredits: 0,
-    yourRank: null as number | null,
-};
+import { useBootstrap } from "@/hooks/useBootstrap";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
 
-// Mock Leaderboard Data - Privacy-first (No public addresses, no public amounts)
-const leaderboard = [
-    { rank: 1, id: "Scops-8821", credits: 31500, tier: "Great Horned" },
-    { rank: 2, id: "Scops-4192", credits: 21000, tier: "Great Horned" },
-    { rank: 3, id: "Scops-2910", credits: 15750, tier: "Snowy" },
-    { rank: 4, id: "Scops-1102", credits: 10500, tier: "Barn" },
-    { rank: 5, id: "Scops-0581", credits: 5250, tier: "Screech" },
-];
-
+// Tier configuration (static, defined by protocol)
 const tiers = [
     { name: "Great Horned", icon: "🦉", minRank: 1, maxRank: 10, perk: "VIP Access", discount: "50%" },
     { name: "Snowy", icon: "🦅", minRank: 11, maxRank: 100, perk: "Priority", discount: "35%" },
@@ -41,24 +26,80 @@ const tiers = [
     { name: "Screech", icon: "🪶", minRank: 501, maxRank: null, perk: "OG Scops", discount: "10%" },
 ];
 
-const TOKENS = [
-    { symbol: "USDC", name: "USD Coin" },
-    { symbol: "SOL", name: "Solana" },
-    { symbol: "USDT", name: "Tether" },
-    { symbol: "PYUSD", name: "PayPal USD" },
-    { symbol: "USD1", name: "Unity USD" },
-];
+// Use centralized token config - stablecoins only for privacy deposits
+import { SUPPORTED_TOKENS, TOKEN_ORDER } from "@/lib/tokens";
+
+const TOKENS = TOKEN_ORDER.map(symbol => ({
+    symbol,
+    name: SUPPORTED_TOKENS[symbol].name,
+    color: SUPPORTED_TOKENS[symbol].color,
+}));
+
+// Credit calculation helper
+const getEstimatedCredits = (amount: string) => (parseFloat(amount) || 0) * 21 * 0.1 * 2;
 
 export default function BootstrapPage() {
     const [depositAmount, setDepositAmount] = useState("");
     const [selectedToken, setSelectedToken] = useState("USDC");
-    const walletBalance = 25000; // Mock balance
+    const [isPrivate, setIsPrivate] = useState(true);
+    const [isDepositing, setIsDepositing] = useState(false);
 
-    const handleDeposit = () => {
-        alert(`Demo: Depositing ${depositAmount} ${selectedToken} to Lending Pool`);
+    const wallet = useAnchorWallet();
+    const {
+        totalRaised,
+        credits,
+        tier,
+        loading,
+        depositPublic,
+        depositPrivate
+    } = useBootstrap();
+
+    // TODO: Fetch real wallet balance via getTokenAccountBalance
+    const walletBalance = 0; // Will be fetched from chain
+
+    // TODO: Fetch from contract - for now show if user has credits
+    const userHasDeposited = credits > 0;
+
+    const handleDeposit = async () => {
+        if (!depositAmount || !wallet) {
+            if (!wallet) alert("Please connect your wallet first");
+            return;
+        }
+        setIsDepositing(true);
+        try {
+            const amount = parseFloat(depositAmount);
+
+            if (isPrivate) {
+                // ZK Deposit with Privacy Cash
+                const { privateDeposit } = await import('@/lib/privacy-cash');
+
+                const zkTx = await privateDeposit({
+                    wallet: wallet.publicKey.toString(),
+                    amount,
+                    token: 'USDC'
+                });
+
+                // Register with Bootstrap Contract for Tier tracking
+                const tx = await depositPrivate(amount, zkTx.txHash);
+
+                alert(`🔒 Private Deposit Successful!\n\n1. Funds secured in ZK Pool\n2. Tier Registered: ${tx.substring(0, 8)}...`);
+            } else {
+                // Public Deposit
+                const tx = await depositPublic(amount);
+                alert(`✅ Public Deposit Successful!\n\nTX: ${tx}`);
+            }
+
+            setDepositAmount("");
+        } catch (error: any) {
+            console.error(error);
+            alert(`Deposit failed: ${error.message || error}`);
+        } finally {
+            setIsDepositing(false);
+        }
     };
 
-    const estimatedCredits = (parseFloat(depositAmount) || 0) * 21 * 0.1 * 2; // days * rate * early bird
+    // Production: Always use real data (show 0 if not loaded)
+    const displayTotalRaised = totalRaised;
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
@@ -91,7 +132,7 @@ export default function BootstrapPage() {
                         Total Liquidity
                     </div>
                     <div className="text-xl font-bold text-primary">
-                        ${(bootstrapStats.totalDeposits / 1_000_000).toFixed(2)}M
+                        ${(displayTotalRaised / 1_000_000).toFixed(2)}M
                     </div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
@@ -100,7 +141,7 @@ export default function BootstrapPage() {
                         Genesis Scops
                     </div>
                     <div className="text-xl font-bold text-primary">
-                        {bootstrapStats.participants.toLocaleString()}
+                        {loading ? '...' : '--'}
                     </div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
@@ -109,7 +150,7 @@ export default function BootstrapPage() {
                         Time Remaining
                     </div>
                     <div className="text-xl font-bold text-accent">
-                        {bootstrapStats.daysRemaining} days
+                        TBD
                     </div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
@@ -118,7 +159,7 @@ export default function BootstrapPage() {
                         Est. Launch APY
                     </div>
                     <div className="text-xl font-bold text-emerald-400">
-                        {bootstrapStats.estimatedAPY}%
+                        --
                     </div>
                 </div>
             </motion.div>
@@ -133,7 +174,28 @@ export default function BootstrapPage() {
                     className="lg:col-span-2 space-y-6"
                 >
                     <div className="p-6 rounded-2xl bg-surface border border-border">
-                        <h2 className="text-lg font-semibold text-primary mb-6">Deposit Liquidity</h2>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-lg font-semibold text-primary">Deposit Liquidity</h2>
+                            <button
+                                onClick={() => setIsPrivate(!isPrivate)}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${isPrivate
+                                    ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                    : 'bg-primary/5 text-secondary border border-transparent'
+                                    }`}
+                            >
+                                {isPrivate ? (
+                                    <>
+                                        <Lock className="w-3 h-3" />
+                                        Private Mode
+                                    </>
+                                ) : (
+                                    <>
+                                        <Users className="w-3 h-3" />
+                                        Public Mode
+                                    </>
+                                )}
+                            </button>
+                        </div>
 
                         {/* Token Selector */}
                         <div className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
@@ -189,7 +251,7 @@ export default function BootstrapPage() {
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-secondary">Estimated Credits (2x early bird)</span>
                                 <span className="text-accent font-medium">
-                                    {estimatedCredits.toLocaleString()}
+                                    {getEstimatedCredits(depositAmount).toLocaleString()}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
@@ -200,20 +262,36 @@ export default function BootstrapPage() {
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-secondary">Privacy Status</span>
-                                <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                                    <Shield className="w-3 h-3" />
-                                    Confidential
-                                </span>
+                                {isPrivate ? (
+                                    <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                                        <Shield className="w-3 h-3" />
+                                        Confidential
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-1.5 text-secondary font-medium">
+                                        <Users className="w-3 h-3" />
+                                        Public
+                                    </span>
+                                )}
                             </div>
                         </div>
 
-                        {/* Deposit Button */}
                         <button
                             onClick={handleDeposit}
-                            disabled={!depositAmount || parseFloat(depositAmount) < 100}
-                            className="w-full py-4 rounded-xl bg-accent hover:bg-accent-hover disabled:bg-surface disabled:text-secondary disabled:cursor-not-allowed text-white font-semibold transition-all"
+                            disabled={!depositAmount || parseFloat(depositAmount) < 100 || isDepositing}
+                            className={`w-full py-4 rounded-xl text-white font-semibold transition-all flex items-center justify-center gap-2 disabled:bg-surface disabled:text-secondary disabled:cursor-not-allowed ${isPrivate
+                                ? 'bg-purple-600 hover:bg-purple-700'
+                                : 'bg-primary hover:bg-primary/90 text-background'
+                                }`}
                         >
-                            Deposit {selectedToken}
+                            {isDepositing ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    {isPrivate ? "Encrypting..." : "Depositing..."}
+                                </>
+                            ) : (
+                                `${isPrivate ? 'Private Deposit' : 'Deposit'} ${selectedToken}`
+                            )}
                         </button>
 
                         {/* Info */}
@@ -278,56 +356,15 @@ export default function BootstrapPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-3">
-                            {leaderboard.map((lender) => (
-                                <div
-                                    key={lender.rank}
-                                    className={`p-4 rounded-xl border transition-all ${lender.tier === "Great Horned"
-                                        ? "bg-purple-500/5 border-purple-500/20"
-                                        : lender.tier === "Snowy"
-                                            ? "bg-cyan-500/5 border-cyan-500/20"
-                                            : lender.tier === "Barn"
-                                                ? "bg-yellow-500/5 border-yellow-500/20"
-                                                : "bg-background border-white/5"
-                                        }`}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${lender.rank <= 2
-                                                ? "bg-purple-500/10 text-purple-400"
-                                                : lender.rank <= 10
-                                                    ? "bg-cyan-500/10 text-cyan-400"
-                                                    : "bg-surface text-secondary"
-                                                }`}>
-                                                #{lender.rank}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-primary">{lender.id}</span>
-                                                    <span className="text-sm">
-                                                        {lender.tier === "Great Horned" && "🦉"}
-                                                        {lender.tier === "Snowy" && "🦅"}
-                                                        {lender.tier === "Barn" && "🐦"}
-                                                        {lender.tier === "Screech" && "🪶"}
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs text-secondary">
-                                                    {lender.tier} Scops
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-semibold text-secondary flex items-center gap-1.5 justify-end">
-                                                <Lock className="w-3 h-3" />
-                                                Hidden
-                                            </div>
-                                            <div className="text-xs text-accent">
-                                                {lender.credits.toLocaleString()} credits
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                        {/* Production: Leaderboard requires off-chain indexer */}
+                        <div className="text-center py-8">
+                            <Lock className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+                            <p className="text-secondary text-sm">
+                                Leaderboard hidden to protect depositor privacy.
+                            </p>
+                            <p className="text-secondary text-xs mt-2">
+                                Your rank and tier will be revealed at launch.
+                            </p>
                         </div>
                     </div>
 
@@ -369,3 +406,4 @@ export default function BootstrapPage() {
         </div>
     );
 }
+

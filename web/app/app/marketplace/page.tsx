@@ -108,10 +108,44 @@ const items = [
 ];
 
 import { TrendingUp, User, Award } from "lucide-react";
+import { useCredits } from "@/hooks/useCredits";
 
 export default function MarketplacePage() {
     const [selectedCategory, setSelectedCategory] = useState("all");
-    const userCredits = 12450;
+    const [purchasingItemId, setPurchasingItemId] = useState<number | null>(null);
+
+    // Use real credits from Credits program
+    const {
+        balance: creditsBalance,
+        loading: creditsLoading,
+        burnCredits,
+        accountExists,
+        createAccount
+    } = useCredits();
+
+    const userCredits = creditsBalance;
+
+    // Handle purchase
+    const handlePurchase = async (item: typeof items[0]) => {
+        if (purchasingItemId) return; // Prevent double-click
+
+        try {
+            setPurchasingItemId(item.id);
+
+            // Create credit account if it doesn't exist (first-time buyers)
+            if (!accountExists) {
+                await createAccount();
+            }
+
+            await burnCredits(item.price, item.id);
+            alert(`✅ Purchased ${item.name} for ${item.price} credits!`);
+        } catch (error: any) {
+            console.error(error);
+            alert(`Failed to purchase: ${error.message}`);
+        } finally {
+            setPurchasingItemId(null);
+        }
+    };
 
     const filteredItems = selectedCategory === "all"
         ? items
@@ -129,10 +163,18 @@ export default function MarketplacePage() {
                     <h1 className="text-2xl font-bold text-primary">Marketplace</h1>
                     <p className="text-secondary">Spend your credits on perks and upgrades</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border">
-                    <ShoppingBag className="w-4 h-4 text-accent" />
-                    <span className="font-bold text-primary">{userCredits.toLocaleString()}</span>
-                    <span className="text-secondary text-sm">credits</span>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-border">
+                        <ShoppingBag className="w-4 h-4 text-accent" />
+                        {creditsLoading ? (
+                            <span className="text-secondary text-sm">Loading...</span>
+                        ) : (
+                            <>
+                                <span className="font-bold text-primary">{userCredits.toLocaleString()}</span>
+                                <span className="text-secondary text-sm">credits</span>
+                            </>
+                        )}
+                    </div>
                 </div>
             </motion.div>
 
@@ -207,13 +249,20 @@ export default function MarketplacePage() {
                                     <span className="text-secondary text-sm">credits</span>
                                 </div>
                                 <button
-                                    disabled={!canAfford}
+                                    onClick={() => handlePurchase(item)}
+                                    disabled={!canAfford || purchasingItemId === item.id}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${canAfford
                                         ? 'bg-accent hover:bg-accent-hover text-white'
                                         : 'bg-surface text-secondary cursor-not-allowed'
                                         }`}
                                 >
-                                    {canAfford ? 'Buy' : <Lock className="w-4 h-4" />}
+                                    {purchasingItemId === item.id ? (
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : canAfford ? (
+                                        'Buy'
+                                    ) : (
+                                        <Lock className="w-4 h-4" />
+                                    )}
                                 </button>
                             </div>
                         </motion.div>

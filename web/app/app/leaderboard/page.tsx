@@ -13,94 +13,39 @@ import {
     Vault
 } from "lucide-react";
 
-const traders = [
-    {
-        id: 1,
-        traderId: "Trader #4521",
-        avatar: "🔒",
-        copiers: 47,
-        winRate: 72,
-        returns30d: 15.6,
-        sharpe: 2.1,
-        maxDrawdown: -4.2,
-        vaultAUM: 234500,
-        isPrivate: true,
-        hasVault: true,
-    },
-    {
-        id: 2,
-        traderId: "Trader #8923",
-        avatar: "🔒",
-        copiers: 23,
-        winRate: 68,
-        returns30d: 11.2,
-        sharpe: 1.8,
-        maxDrawdown: -6.1,
-        vaultAUM: 89200,
-        isPrivate: true,
-        hasVault: true,
-    },
-    {
-        id: 3,
-        traderId: "Trader #2156",
-        avatar: "🔒",
-        copiers: 89,
-        winRate: 82,
-        returns30d: 8.9,
-        sharpe: 2.8,
-        maxDrawdown: -1.8,
-        vaultAUM: 456000,
-        isPrivate: true,
-        hasVault: true,
-    },
-    {
-        id: 4,
-        traderId: "Trader #7734",
-        avatar: "🔒",
-        copiers: 12,
-        winRate: 65,
-        returns30d: 22.4,
-        sharpe: 1.5,
-        maxDrawdown: -8.7,
-        vaultAUM: 67800,
-        isPrivate: true,
-        hasVault: true,
-    },
-    {
-        id: 5,
-        traderId: "Trader #3891",
-        avatar: "🔒",
-        copiers: 34,
-        winRate: 71,
-        returns30d: 9.8,
-        sharpe: 2.2,
-        maxDrawdown: -3.4,
-        vaultAUM: 123000,
-        isPrivate: true,
-        hasVault: true,
-    },
-    {
-        id: 6,
-        traderId: "Trader #5567",
-        avatar: "🔒",
-        copiers: 8,
-        winRate: 58,
-        returns30d: 18.7,
-        sharpe: 1.2,
-        maxDrawdown: -12.3,
-        vaultAUM: 45600,
-        isPrivate: true,
-        hasVault: false,
-    },
-];
+// Production: Trader rankings require off-chain performance indexer
+// This will be populated from an API that aggregates on-chain position data
+// For now, show empty state to indicate no mock data
+type Trader = {
+    id: number;
+    traderId: string;
+    copiers: number;
+    winRate: number | null;
+    returns30d: number | null;
+    sharpe: number | null;
+    maxDrawdown: number | null;
+    vaultAUM: number;
+    isPrivate: boolean;
+    hasVault: boolean;
+};
+
+const traders: Trader[] = [];
 
 const timeFilters = ["7d", "30d", "90d", "All"];
 const sortOptions = ["Returns", "Sharpe", "Win Rate", "AUM"];
+
+import { useVaults } from "@/hooks/useVaults";
 
 export default function LeaderboardPage() {
     const [selectedTime, setSelectedTime] = useState("30d");
     const [selectedSort, setSelectedSort] = useState("Returns");
     const [searchQuery, setSearchQuery] = useState("");
+
+    const { vaults, loading: vaultsLoading } = useVaults();
+
+    // Calculate real stats from vaults
+    const totalVaultTVL = vaults.reduce((sum, v) => sum + v.totalAssets, 0);
+    const activeVaultsCount = vaults.length;
 
     const filteredTraders = traders.filter(t =>
         t.traderId.toLowerCase().includes(searchQuery.toLowerCase())
@@ -157,25 +102,29 @@ export default function LeaderboardPage() {
                         <Users className="w-4 h-4" />
                         Verified Traders
                     </div>
-                    <div className="text-xl font-bold text-primary">127</div>
+                    <div className="text-xl font-bold text-primary">{traders.length}</div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
                     <div className="flex items-center gap-2 text-secondary text-sm mb-1">
                         <Vault className="w-4 h-4" />
                         Active Vaults
                     </div>
-                    <div className="text-xl font-bold text-primary">89</div>
+                    <div className="text-xl font-bold text-primary">
+                        {vaultsLoading ? "..." : activeVaultsCount}
+                    </div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
                     <div className="flex items-center gap-2 text-secondary text-sm mb-1">
                         <Lock className="w-4 h-4" />
                         Vault TVL
                     </div>
-                    <div className="text-xl font-bold text-primary">$2.4M</div>
+                    <div className="text-xl font-bold text-primary">
+                        {vaultsLoading ? "..." : `$${(totalVaultTVL / 1000).toFixed(0)}K`}
+                    </div>
                 </div>
                 <div className="p-4 rounded-xl bg-surface border border-border">
                     <div className="text-secondary text-sm mb-1">Avg Return (30d)</div>
-                    <div className="text-xl font-bold text-emerald-400">+14.2%</div>
+                    <div className="text-xl font-bold text-secondary">--</div>
                 </div>
             </motion.div>
 
@@ -235,68 +184,78 @@ export default function LeaderboardPage() {
 
                 {/* Table Rows */}
                 <div className="divide-y divide-white/5">
-                    {filteredTraders.map((trader, index) => (
-                        <motion.div
-                            key={trader.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: index * 0.03 }}
-                            className="grid grid-cols-7 gap-4 p-4 items-center hover:bg-background/50 transition-colors cursor-pointer"
-                        >
-                            {/* Rank */}
-                            <div className={`text-lg font-bold ${index < 3 ? 'text-accent' : 'text-secondary'
-                                }`}>
-                                #{index + 1}
-                            </div>
-
-                            {/* Trader */}
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                                    <Lock className="w-5 h-5 text-purple-400" />
+                    {filteredTraders.length === 0 ? (
+                        <div className="text-center py-12">
+                            <Lock className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+                            <p className="text-secondary text-sm">No verified traders yet.</p>
+                            <p className="text-secondary text-xs mt-2">
+                                Trader rankings will appear once the performance indexer is live.
+                            </p>
+                        </div>
+                    ) : (
+                        filteredTraders.map((trader, index) => (
+                            <motion.div
+                                key={trader.id}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: index * 0.03 }}
+                                className="grid grid-cols-7 gap-4 p-4 items-center hover:bg-background/50 transition-colors cursor-pointer"
+                            >
+                                {/* Rank */}
+                                <div className={`text-lg font-bold ${index < 3 ? 'text-accent' : 'text-secondary'
+                                    }`}>
+                                    #{index + 1}
                                 </div>
-                                <div>
-                                    <div className="font-medium text-primary">{trader.traderId}</div>
-                                    <div className="text-xs text-secondary flex items-center gap-1">
-                                        <EyeOff className="w-3 h-3" />
-                                        {trader.copiers} copiers
+
+                                {/* Trader */}
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                        <Lock className="w-5 h-5 text-purple-400" />
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-primary">{trader.traderId}</div>
+                                        <div className="text-xs text-secondary flex items-center gap-1">
+                                            <EyeOff className="w-3 h-3" />
+                                            {trader.copiers} copiers
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Return */}
-                            <div className={`text-center font-semibold ${trader.returns30d >= 0 ? 'text-emerald-400' : 'text-red-400'
-                                }`}>
-                                {trader.returns30d >= 0 ? '+' : ''}{trader.returns30d}%
-                            </div>
+                                {/* Return */}
+                                <div className={`text-center font-semibold ${(trader.returns30d ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+                                    }`}>
+                                    {trader.returns30d !== null ? `${trader.returns30d >= 0 ? '+' : ''}${trader.returns30d}%` : '--'}
+                                </div>
 
-                            {/* Sharpe */}
-                            <div className="text-center text-primary font-medium">
-                                {trader.sharpe}
-                            </div>
+                                {/* Sharpe */}
+                                <div className="text-center text-primary font-medium">
+                                    {trader.sharpe !== null ? trader.sharpe.toFixed(1) : '--'}
+                                </div>
 
-                            {/* Win Rate */}
-                            <div className="text-center text-primary font-medium">
-                                {trader.winRate}%
-                            </div>
+                                {/* Win Rate */}
+                                <div className="text-center text-primary font-medium">
+                                    {trader.winRate !== null ? `${trader.winRate}%` : '--'}
+                                </div>
 
-                            {/* Drawdown */}
-                            <div className="text-center text-red-400 font-medium">
-                                {trader.maxDrawdown}%
-                            </div>
+                                {/* Drawdown */}
+                                <div className="text-center text-red-400 font-medium">
+                                    {trader.maxDrawdown !== null ? `${trader.maxDrawdown}%` : '--'}
+                                </div>
 
-                            {/* Vault */}
-                            <div className="text-right">
-                                {trader.hasVault ? (
-                                    <button className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-all flex items-center gap-1 ml-auto">
-                                        <Vault className="w-3 h-3" />
-                                        ${(trader.vaultAUM / 1000).toFixed(0)}K
-                                    </button>
-                                ) : (
-                                    <span className="text-secondary text-sm">No vault</span>
-                                )}
-                            </div>
-                        </motion.div>
-                    ))}
+                                {/* Vault */}
+                                <div className="text-right">
+                                    {trader.hasVault ? (
+                                        <button className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-all flex items-center gap-1 ml-auto">
+                                            <Vault className="w-3 h-3" />
+                                            ${(trader.vaultAUM / 1000).toFixed(0)}K
+                                        </button>
+                                    ) : (
+                                        <span className="text-secondary text-sm">No vault</span>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
                 </div>
             </motion.div>
 

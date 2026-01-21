@@ -1,385 +1,322 @@
-"use client";
+import { PublicKey } from "@solana/web3.js";
+import { useEffect, useState, useMemo } from "react";
+import { HermesClient } from "@pythnetwork/hermes-client";
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+// ==========================================
+// 1. Pyth Price Feed IDs (Universal Hex IDs)
+// These are the canonical Pyth Feed IDs used by Hermes
+// ==========================================
 
-// Pyth FX price feed IDs (major pairs with active data)
-// See: https://hermes.pyth.network/v2/price_feeds?asset_type=fx
-export const PYTH_PRICE_FEEDS: Record<string, string> = {
-    // Major pairs (vs USD)
-    'EUR/USD': '0xa995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b',
-    'GBP/USD': '0x84c2dde9633d93d1bcad84e7dc41c9d56578b7ec52fabedc1f335d673df0a7c1',
-    'USD/JPY': '0xef2c98c804ba503c6a707e38be4dfbb16683775f195b091252bf24693042fd52',
-    'USD/CHF': '0x0b1e3297e69f162877b577b0d6a47a0d63b2392bc8499e6540da4187a63e28f8',
-    'AUD/USD': '0x67a6f93030420c1c9e3fe37c1ab6b77966af82f995944a9fefce357a22854a80',
-    // Cross pairs
-    'EUR/GBP': '0xc349ff6087acab1c0c5442a9de0ea804239cc9fd09be8b1a93ffa0ed7f366d9c',
-    'EUR/JPY': '0xd8c874fa511b9838d094109f996890642421e462c3b29501a2560cecf82c2eb4',
-    'EUR/CHF': '0x6194ee9b4ae25932ae69e6574871801f0f30b4a3317877c55301a45902aa0c1a',
-    'GBP/JPY': '0xcfa65905787703c692c3cac2b8a009a1db51ce68b54f5b206ce6a55bfa2c3cd1',
+// Correct Pyth Price Feed IDs from pyth.network
+const PYTH_FEED_IDS: Record<string, string> = {
+    // Major pairs
+    "EUR/USD": "a995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b",
+    "GBP/USD": "84c2dde9633d93d1bcad84e7dc41c9d56578b7ec52fabedc1f335d673df0a7c1",
+    "USD/JPY": "ef2c98c804ba503c6a707e38be4dfbb16683775f195b091252bf24693042fd52",
+    "AUD/USD": "67a6f93030420c1c9e3fe37c1ab6b77966af82f995944a9fefce357a22854a80",
+    "USD/CAD": "3112b03a41c910ed446852aacf67118cb1bec67b2cd0b9a214c58cc0eaa2ecca",
+    "USD/CHF": "0b1e3297e69f162877b577b0d6a47a0d63b2392bc8499e6540da4187a63e28f8",
+    // Cross pairs (for triangular arbitrage)
+    "EUR/JPY": "d8c874fa511b9838d094109f996890642421e462c3b29501a2560cecf82c2eb4",
+    "GBP/CHF": "ae95ee182ff568100d09257956a01d6bd663072e62fe108bae42ecca4400f527",
+    "AUD/JPY": "8dbbb66dff44114f0bfc34a1d19f0fe6fc3906dcc72f7668d3ea936e1d6544ce",
+    "EUR/CHF": "6194ee9b4ae25932ae69e6574871801f0f30b4a3317877c55301a45902aa0c1a",
+    "EUR/GBP": "c349ff6087acab1c0c5442a9de0ea804239cc9fd09be8b1a93ffa0ed7f366d9c",
 };
 
-// All available pairs for easy access
-export const FX_PAIRS = Object.keys(PYTH_PRICE_FEEDS);
-
-// Pair metadata
-export const PAIR_INFO: Record<string, { base: string; quote: string; decimals: number }> = {
-    'EUR/USD': { base: 'EUR', quote: 'USD', decimals: 5 },
-    'GBP/USD': { base: 'GBP', quote: 'USD', decimals: 5 },
-    'USD/JPY': { base: 'USD', quote: 'JPY', decimals: 3 },
-    'USD/CHF': { base: 'USD', quote: 'CHF', decimals: 5 },
-    'AUD/USD': { base: 'AUD', quote: 'USD', decimals: 5 },
-    'EUR/GBP': { base: 'EUR', quote: 'GBP', decimals: 5 },
-    'EUR/JPY': { base: 'EUR', quote: 'JPY', decimals: 3 },
-    'EUR/CHF': { base: 'EUR', quote: 'CHF', decimals: 5 },
-    'GBP/JPY': { base: 'GBP', quote: 'JPY', decimals: 3 },
+// For Solana contract, we still need PublicKeys derived from the Feed IDs
+// Note: On Solana, you'd use PythSolanaReceiver to get the actual price account
+export const PYTH_FEEDS = {
+    "EUR/USD": new PublicKey(Buffer.from(PYTH_FEED_IDS["EUR/USD"], "hex")),
+    "GBP/USD": new PublicKey(Buffer.from(PYTH_FEED_IDS["GBP/USD"], "hex")),
+    "USD/JPY": new PublicKey(Buffer.from(PYTH_FEED_IDS["USD/JPY"], "hex")),
+    "AUD/USD": new PublicKey(Buffer.from(PYTH_FEED_IDS["AUD/USD"], "hex")),
+    "USD/CAD": new PublicKey(Buffer.from(PYTH_FEED_IDS["USD/CAD"], "hex")),
+    "USD/CHF": new PublicKey(Buffer.from(PYTH_FEED_IDS["USD/CHF"], "hex")),
+    "EUR/JPY": new PublicKey(Buffer.from(PYTH_FEED_IDS["EUR/JPY"], "hex")),
+    "GBP/CHF": new PublicKey(Buffer.from(PYTH_FEED_IDS["GBP/CHF"], "hex")),
+    "AUD/JPY": new PublicKey(Buffer.from(PYTH_FEED_IDS["AUD/JPY"], "hex")),
+    "EUR/CHF": new PublicKey(Buffer.from(PYTH_FEED_IDS["EUR/CHF"], "hex")),
+    "EUR/GBP": new PublicKey(Buffer.from(PYTH_FEED_IDS["EUR/GBP"], "hex")),
 };
 
-// Triangular arbitrage configurations
-export const TRIANGLES = [
-    { name: 'EUR-USD-GBP', pairs: ['EUR/USD', 'GBP/USD', 'EUR/GBP'], currencies: ['EUR', 'USD', 'GBP'] },
-    { name: 'EUR-USD-JPY', pairs: ['EUR/USD', 'USD/JPY', 'EUR/JPY'], currencies: ['EUR', 'USD', 'JPY'] },
-    { name: 'EUR-USD-CHF', pairs: ['EUR/USD', 'USD/CHF', 'EUR/CHF'], currencies: ['EUR', 'USD', 'CHF'] },
-    { name: 'GBP-USD-JPY', pairs: ['GBP/USD', 'USD/JPY', 'GBP/JPY'], currencies: ['GBP', 'USD', 'JPY'] },
+export function getFeedId(pair: string): PublicKey {
+    const feed = PYTH_FEEDS[pair as keyof typeof PYTH_FEEDS];
+    if (!feed) {
+        throw new Error(`Price feed not found for pair: ${pair}`);
+    }
+    return feed;
+}
+
+// ==========================================
+// 2. Frontend Utilities & Hooks (Hermes)
+// ==========================================
+
+export const FX_PAIRS = [
+    "EUR/USD",
+    "GBP/USD",
+    "USD/JPY",
+    "AUD/USD",
+    "USD/CAD",
+    "USD/CHF",
 ];
 
-
-
-export interface PriceData {
-    pair: string;
-    price: number;
-    change24h: number;
-    high24h: number;
-    low24h: number;
-    confidence: number;
-    lastUpdate: Date;
-    isLive: boolean;
-    isMarketClosed: boolean;
-}
-
-// Check if FX market is closed (weekends: Friday 22:00 UTC to Sunday 22:00 UTC)
-export function isFXMarketClosed(): boolean {
-    const now = new Date();
-    const utcDay = now.getUTCDay(); // 0 = Sunday, 6 = Saturday
-    const utcHour = now.getUTCHours();
-
-    // Saturday: always closed
-    if (utcDay === 6) return true;
-
-    // Sunday: closed until 22:00 UTC
-    if (utcDay === 0 && utcHour < 22) return true;
-
-    // Friday: closed after 22:00 UTC
-    if (utcDay === 5 && utcHour >= 22) return true;
-
-    return false;
-}
-
-// V2 API response structure
-interface PythV2Response {
-    parsed: Array<{
-        id: string;
-        price: {
-            price: string;
-            conf: string;
-            expo: number;
-            publish_time: number;
-        };
-        ema_price: {
-            price: string;
-            conf: string;
-            expo: number;
-            publish_time: number;
-        };
-    }>;
-}
-
-const HERMES_ENDPOINT = 'https://hermes.pyth.network';
-const BENCHMARKS_ENDPOINT = 'https://benchmarks.pyth.network';
-
-// Fallback prices for when API is unavailable (approximate market rates)
-const FALLBACK_PRICES: Record<string, number> = {
-    'EUR/USD': 1.0850,
-    'GBP/USD': 1.2720,
-    'USD/JPY': 148.50,
-    'USD/CHF': 0.8820,
-    'AUD/USD': 0.6550,
-    'EUR/GBP': 0.8530,
-    'EUR/JPY': 161.10,
-    'EUR/CHF': 0.9570,
-    'GBP/JPY': 188.90,
+export const PAIR_INFO: Record<string, { decimals: number }> = {
+    "EUR/USD": { decimals: 4 },
+    "GBP/USD": { decimals: 4 },
+    "USD/JPY": { decimals: 2 },
+    "AUD/USD": { decimals: 4 },
+    "USD/CAD": { decimals: 4 },
+    "USD/CHF": { decimals: 4 },
+    "EUR/JPY": { decimals: 2 },
+    "GBP/CHF": { decimals: 4 },
+    "AUD/JPY": { decimals: 2 },
+    "EUR/CHF": { decimals: 4 },
+    "EUR/GBP": { decimals: 4 },
 };
 
-// Cache for last known prices when markets close
-const lastKnownPrices: Record<string, number> = {};
+export const formatPrice = (price: number, decimals: number = 4) => {
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    }).format(price);
+};
 
 export function usePythPrices(pairs: string[]) {
-    const [prices, setPrices] = useState<Record<string, PriceData>>({});
+    const [prices, setPrices] = useState<Record<string, { price: number; high24h: number; low24h: number; isLive: boolean; lastUpdate?: Date; isMarketClosed?: boolean }>>({});
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
-    const fetchPrices = useCallback(async () => {
-        try {
-            // Get feed IDs for requested pairs
-            const feedIds = pairs
-                .filter(pair => PYTH_PRICE_FEEDS[pair])
-                .map(pair => PYTH_PRICE_FEEDS[pair]);
-
-            if (feedIds.length === 0) {
-                setLoading(false);
-                return;
-            }
-
-            // Fetch latest prices from Hermes v2 API
-            const queryParams = feedIds.map(id => `ids[]=${id}`).join('&');
-            const response = await fetch(
-                `${HERMES_ENDPOINT}/v2/updates/price/latest?${queryParams}&parsed=true`
-            );
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch prices: ${response.status}`);
-            }
-
-            const data: PythV2Response = await response.json();
-
-            if (!data.parsed || data.parsed.length === 0) {
-                throw new Error('No price data received');
-            }
-
-            // Create a map of id -> price data (without 0x prefix)
-            const priceMap = new Map<string, { price: number; conf: number; isLive: boolean }>();
-
-            for (const item of data.parsed) {
-                const price = parseInt(item.price.price);
-                const expo = item.price.expo;
-                const conf = parseInt(item.price.conf);
-                const calculatedPrice = price * Math.pow(10, expo);
-
-                priceMap.set(item.id, {
-                    price: calculatedPrice,
-                    conf: conf * Math.pow(10, expo),
-                    isLive: calculatedPrice > 0 && item.price.publish_time > 0,
-                });
-            }
-
-            // Build price data objects for each pair
-            const newPrices: Record<string, PriceData> = {};
-            const marketClosed = isFXMarketClosed();
-
-            for (const pair of pairs) {
-                const feedId = PYTH_PRICE_FEEDS[pair];
-                if (!feedId) continue;
-
-                // Remove 0x prefix to match response format
-                const idWithoutPrefix = feedId.slice(2);
-                const priceData = priceMap.get(idWithoutPrefix);
-
-                let finalPrice: number;
-                let isLive: boolean;
-
-                // Use live price if available
-                if (priceData && priceData.price > 0) {
-                    finalPrice = priceData.price;
-                    isLive = !marketClosed; // Only live if market is open
-                    // Cache this as the last known price
-                    lastKnownPrices[pair] = finalPrice;
-                } else {
-                    // No data - use last known price or fallback
-                    finalPrice = lastKnownPrices[pair] || FALLBACK_PRICES[pair] || 1;
-                    isLive = false;
-                }
-
-                newPrices[pair] = {
-                    pair: pair,
-                    price: finalPrice,
-                    change24h: 0,
-                    high24h: isLive ? finalPrice * 1.003 : finalPrice,
-                    low24h: isLive ? finalPrice * 0.997 : finalPrice,
-                    confidence: priceData?.conf || 0,
-                    lastUpdate: new Date(),
-                    isLive: isLive,
-                    isMarketClosed: marketClosed,
-                };
-            }
-
-            setPrices(newPrices);
-            setError(null);
-        } catch (err) {
-            console.error('Error fetching Pyth prices:', err);
-            setError(err instanceof Error ? err.message : 'Failed to fetch prices');
-
-            // On error, use last known or fallback prices (flat line)
-            const fallbackPrices: Record<string, PriceData> = {};
-            const marketClosed = isFXMarketClosed();
-            for (const pair of pairs) {
-                const fallback = lastKnownPrices[pair] || FALLBACK_PRICES[pair];
-                if (fallback) {
-                    fallbackPrices[pair] = {
-                        pair,
-                        price: fallback,
-                        change24h: 0,
-                        high24h: fallback,
-                        low24h: fallback,
-                        confidence: 0,
-                        lastUpdate: new Date(),
-                        isLive: false,
-                        isMarketClosed: marketClosed,
-                    };
-                }
-            }
-            setPrices(fallbackPrices);
-        } finally {
-            setLoading(false);
-        }
-    }, [pairs]);
+    // Using public Hermes endpoint with HermesClient
+    const client = useMemo(() => new HermesClient("https://hermes.pyth.network"), []);
 
     useEffect(() => {
+        const fetchPrices = async () => {
+            // 1. Get IDs (prefixed with 0x for Hermes)
+            const ids = pairs
+                .map(p => PYTH_FEED_IDS[p])
+                .filter(Boolean)
+                .map(id => `0x${id}`);
+
+            if (ids.length === 0) return;
+
+            try {
+                const priceUpdate = await client.getLatestPriceUpdates(ids, { parsed: true });
+                if (!priceUpdate?.parsed) return;
+
+                const newPrices: Record<string, any> = {};
+
+                priceUpdate.parsed.forEach((feed: any) => {
+                    // Find the pair name for this feed ID (strip 0x for comparison)
+                    const feedIdClean = feed.id.replace(/^0x/, '');
+                    const pairName = Object.keys(PYTH_FEED_IDS).find(key => PYTH_FEED_IDS[key] === feedIdClean);
+                    if (!pairName) return;
+
+                    const priceData = feed.price;
+                    if (priceData) {
+                        const price = Number(priceData.price) * Math.pow(10, priceData.expo);
+                        newPrices[pairName] = {
+                            price,
+                            high24h: price * 1.005, // Mock 24h stats for demo
+                            low24h: price * 0.995,
+                            isLive: true,
+                            lastUpdate: new Date(),
+                            isMarketClosed: false,
+                        };
+                    }
+                });
+
+                setPrices(p => ({ ...p, ...newPrices }));
+                setLoading(false);
+            } catch (err) {
+                console.error("Pyth fetch error:", err);
+            }
+        };
+
+        // Initial fetch
         fetchPrices();
 
-        // Poll every 60 seconds for updated prices (matches chart intervals)
-        const interval = setInterval(fetchPrices, 60000);
+        // Poll every 2s
+        const interval = setInterval(fetchPrices, 2000);
 
         return () => clearInterval(interval);
-    }, [fetchPrices]);
+    }, [pairs, client]);
 
-    return { prices, loading, error, refetch: fetchPrices };
+    return { prices, loading };
 }
 
-// Fetch historical price from Pyth Benchmarks API
-export async function fetchHistoricalPrice(pair: string, timestamp: number): Promise<number | null> {
-    const feedId = PYTH_PRICE_FEEDS[pair];
-    if (!feedId) return null;
+// ==========================================
+// 3. PnL Calculation Utilities
+// ==========================================
 
+/**
+ * Calculate PnL for a position
+ * @param entryPrice - Entry price of the position (6 decimals)
+ * @param currentPrice - Current market price (6 decimals)
+ * @param size - Position size (notional value in USDC, 6 decimals)
+ * @param side - 'LONG' or 'SHORT'
+ * @returns PnL in USDC
+ */
+export function calculatePnL(
+    entryPrice: number,
+    currentPrice: number,
+    size: number,
+    side: string
+): number {
+    if (entryPrice === 0 || currentPrice === 0) return 0;
+
+    // Price change percentage
+    const priceChangePercent = (currentPrice - entryPrice) / entryPrice;
+
+    // PnL is size * price_change_percent for long, negative for short
+    const pnl = side.toUpperCase() === 'LONG'
+        ? size * priceChangePercent
+        : -size * priceChangePercent;
+
+    return pnl;
+}
+
+/**
+ * Calculate PnL percentage based on margin
+ */
+export function calculatePnLPercent(pnl: number, margin: number): number {
+    if (margin === 0) return 0;
+    return (pnl / margin) * 100;
+}
+
+/**
+ * Get Hermes client for fetching latest prices (Singleton)
+ */
+let hermesClientInstance: HermesClient | null = null;
+
+export function createHermesClient() {
+    if (!hermesClientInstance) {
+        hermesClientInstance = new HermesClient("https://hermes.pyth.network");
+    }
+    return hermesClientInstance;
+}
+
+/**
+ * Fetch latest price for a single pair
+ */
+export async function fetchLatestPrice(pair: string): Promise<number | null> {
     try {
-        const response = await fetch(
-            `${BENCHMARKS_ENDPOINT}/v1/updates/price/${timestamp}?ids=${feedId}&parsed=true`
-        );
+        const client = createHermesClient();
+        const feedIdHex = PYTH_FEED_IDS[pair];
+        if (!feedIdHex) return null;
 
-        if (!response.ok) return null;
-
-        const data = await response.json();
-
-        if (data.parsed && data.parsed.length > 0) {
-            const priceInfo = data.parsed[0].price;
-            const price = parseInt(priceInfo.price);
-            const expo = priceInfo.expo;
-            return price * Math.pow(10, expo);
+        const priceUpdates = await client.getLatestPriceUpdates([`0x${feedIdHex}`]);
+        if (priceUpdates.parsed && priceUpdates.parsed.length > 0) {
+            const update = priceUpdates.parsed[0];
+            const price = Number(update.price.price) * Math.pow(10, update.price.expo);
+            return price;
         }
-
         return null;
-    } catch {
+    } catch (error) {
+        console.error(`Failed to fetch price for ${pair}:`, error);
         return null;
     }
 }
 
-// Format price for display
-export function formatPrice(price: number, decimals: number = 4): string {
-    return price.toFixed(decimals);
+// ==========================================
+// 4. Triangular Arbitrage Monitor
+// ==========================================
+
+// Triangular arbitrage routes
+const TRIANGULAR_ROUTES = [
+    { name: "EUR-USD-JPY", pairs: ["EUR/USD", "USD/JPY", "EUR/JPY"] as const },
+    { name: "GBP-USD-CHF", pairs: ["GBP/USD", "USD/CHF", "GBP/CHF"] as const },
+    { name: "AUD-USD-JPY", pairs: ["AUD/USD", "USD/JPY", "AUD/JPY"] as const },
+    { name: "EUR-USD-GBP", pairs: ["EUR/USD", "GBP/USD", "EUR/GBP"] as const },
+];
+
+export interface TriangleInfo {
+    name: string;
+    pairs: readonly string[];
 }
 
-// Format percentage change
-export function formatChange(change: number): string {
-    const sign = change >= 0 ? '+' : '';
-    return `${sign}${change.toFixed(2)}%`;
-}
-
-// Triangular arbitrage types
 export interface ArbitrageOpportunity {
-    triangle: typeof TRIANGLES[0];
-    direction: 'forward' | 'reverse';
+    triangle: TriangleInfo;
+    path: string[];
     prices: Record<string, number>;
-    impliedRate: number;
     actualRate: number;
     profitPct: number;
     profitable: boolean;
-    path: string[];
 }
 
-// Calculate triangular arbitrage opportunity
-export function calculateArbitrage(
-    triangle: typeof TRIANGLES[0],
-    prices: Record<string, PriceData>
-): ArbitrageOpportunity | null {
-    const [pair1, pair2, pair3] = triangle.pairs;
-    const [ccy1, ccy2, ccy3] = triangle.currencies;
-
-    const p1 = prices[pair1]?.price;
-    const p2 = prices[pair2]?.price;
-    const p3 = prices[pair3]?.price;
-
-    if (!p1 || !p2 || !p3) return null;
-
-    // Forward: ccy1 -> ccy2 -> ccy3 -> ccy1
-    // We need to figure out the conversion based on pair structure
-    let forwardRate: number;
-    let reverseRate: number;
-
-    // EUR-USD-GBP example:
-    // EUR/USD = 1.16 (1 EUR = 1.16 USD)
-    // GBP/USD = 1.34 (1 GBP = 1.34 USD)
-    // EUR/GBP = 0.87 (1 EUR = 0.87 GBP)
-    //
-    // Forward: Start with 1 EUR
-    // 1 EUR -> 1.16 USD (multiply by EUR/USD)
-    // 1.16 USD -> 1.16/1.34 GBP = 0.866 GBP (divide by GBP/USD)
-    // 0.866 GBP -> 0.866/0.87 EUR = 0.995 EUR (divide by EUR/GBP)
-    // If result > 1, profit!
-
-    if (triangle.name === 'EUR-USD-GBP') {
-        // EUR -> USD -> GBP -> EUR
-        forwardRate = (p1 / p2) / p3; // EUR/USD / GBP/USD / EUR/GBP
-        reverseRate = p3 * p2 / p1;   // EUR/GBP * GBP/USD / EUR/USD
-    } else if (triangle.name === 'EUR-USD-JPY') {
-        // EUR -> USD -> JPY -> EUR
-        // EUR/USD, USD/JPY, EUR/JPY
-        forwardRate = (p1 * p2) / p3; // EUR/USD * USD/JPY / EUR/JPY
-        reverseRate = p3 / (p1 * p2);
-    } else if (triangle.name === 'EUR-USD-CHF') {
-        // EUR -> USD -> CHF -> EUR
-        // EUR/USD, USD/CHF, EUR/CHF
-        forwardRate = (p1 * p2) / p3;
-        reverseRate = p3 / (p1 * p2);
-    } else if (triangle.name === 'GBP-USD-JPY') {
-        // GBP -> USD -> JPY -> GBP
-        // GBP/USD, USD/JPY, GBP/JPY
-        forwardRate = (p1 * p2) / p3;
-        reverseRate = p3 / (p1 * p2);
-    } else {
-        return null;
+/**
+ * Calculate triangular arbitrage metrics
+ * For a triangle A/B, B/C, A/C:
+ * - Forward: A → B → C → A should equal 1
+ * - If (A/B) * (B/C) / (A/C) != 1, there's an arb opportunity
+ */
+function calculateTriangularArb(
+    priceAB: number | undefined,
+    priceBC: number | undefined,
+    priceAC: number | undefined
+): { actualRate: number; profitPct: number } {
+    if (!priceAB || !priceBC || !priceAC || priceAC === 0) {
+        return { actualRate: 1, profitPct: 0 };
     }
 
-    const forwardProfit = (forwardRate - 1) * 100;
-    const reverseProfit = (reverseRate - 1) * 100;
+    // Calculate synthetic cross rate
+    const syntheticRate = priceAB * priceBC;
+    const actualRate = syntheticRate / priceAC;
+    const profitPct = (actualRate - 1) * 100;
 
-    const bestDirection = Math.abs(forwardProfit) > Math.abs(reverseProfit) ? 'forward' : 'reverse';
-    const bestProfit = bestDirection === 'forward' ? forwardProfit : reverseProfit;
-    const bestRate = bestDirection === 'forward' ? forwardRate : reverseRate;
-
-    // Build path description
-    const path = bestDirection === 'forward'
-        ? [ccy1, ccy2, ccy3, ccy1]
-        : [ccy1, ccy3, ccy2, ccy1];
-
-    return {
-        triangle,
-        direction: bestDirection,
-        prices: { [pair1]: p1, [pair2]: p2, [pair3]: p3 },
-        impliedRate: 1,
-        actualRate: bestRate,
-        profitPct: bestProfit,
-        profitable: bestProfit > 0.01, // > 1 basis point
-        path,
-    };
+    return { actualRate, profitPct };
 }
 
-// Hook to monitor all triangular arbitrage opportunities
 export function useArbitrageMonitor() {
-    const allPairs = TRIANGLES.flatMap(t => t.pairs).filter((v, i, a) => a.indexOf(v) === i);
-    const { prices, loading, error } = usePythPrices(allPairs);
+    const allPairs = Array.from(
+        new Set(TRIANGULAR_ROUTES.flatMap(r => [...r.pairs]))
+    );
+    const { prices, loading } = usePythPrices(allPairs);
+    const [opportunities, setOpportunities] = useState<ArbitrageOpportunity[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
-    const opportunities = TRIANGLES.map(triangle => calculateArbitrage(triangle, prices)).filter(Boolean) as ArbitrageOpportunity[];
+    useEffect(() => {
+        if (loading || Object.keys(prices).length === 0) return;
 
-    // Sort by absolute profit
-    opportunities.sort((a, b) => Math.abs(b.profitPct) - Math.abs(a.profitPct));
+        try {
+            const opps: ArbitrageOpportunity[] = TRIANGULAR_ROUTES.map(triangle => {
+                const [pairA, pairB, pairC] = triangle.pairs;
+                const priceA = prices[pairA]?.price;
+                const priceB = prices[pairB]?.price;
+                const priceC = prices[pairC]?.price;
 
-    return { opportunities, prices, loading, error };
+                const { actualRate, profitPct } = calculateTriangularArb(priceA, priceB, priceC);
+
+                return {
+                    triangle: {
+                        name: triangle.name,
+                        pairs: triangle.pairs,
+                    },
+                    path: [...triangle.pairs],
+                    prices: {
+                        [pairA]: priceA || 0,
+                        [pairB]: priceB || 0,
+                        [pairC]: priceC || 0,
+                    },
+                    actualRate,
+                    profitPct,
+                    profitable: Math.abs(profitPct) > 0.01, // > 1 bps is considered profitable
+                };
+            });
+
+            // Sort by absolute profit potential
+            opps.sort((a, b) => Math.abs(b.profitPct) - Math.abs(a.profitPct));
+            setOpportunities(opps);
+            setError(null);
+        } catch (e) {
+            setError("Failed to calculate arbitrage opportunities");
+            console.error(e);
+        }
+    }, [prices, loading]);
+
+    return {
+        opportunities,
+        prices,
+        loading,
+        error,
+    };
 }

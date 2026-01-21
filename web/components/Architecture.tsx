@@ -35,7 +35,7 @@ const steps = [
 
 export default function Architecture() {
     return (
-        <section className="py-32 container mx-auto px-6 relative z-10">
+        <section id="how-it-works" className="py-24 container mx-auto px-6 relative z-10">
             <div className="mb-24 md:text-center max-w-3xl mx-auto">
                 <motion.span
                     initial={{ opacity: 0, y: 10 }}

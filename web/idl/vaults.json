@@ -1,0 +1,246 @@
+{
+    "version": "0.1.0",
+    "name": "vaults",
+    "instructions": [
+        {
+            "name": "initializeManager",
+            "accounts": [
+                {
+                    "name": "manager",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "authority",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "systemProgram",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "createVault",
+            "accounts": [
+                {
+                    "name": "vault",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "manager",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "shareMint",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "usdcMint",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "usdcVault",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "authority",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "tokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "systemProgram",
+                    "isMut": false,
+                    "isSigner": false
+                },
+                {
+                    "name": "rent",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "strategyType",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "deposit",
+            "accounts": [
+                {
+                    "name": "vault",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "shareMint",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "usdcVault",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "depositor",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "userUsdc",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "userShares",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "tokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": [
+                {
+                    "name": "amount",
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "withdraw",
+            "accounts": [
+                {
+                    "name": "vault",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "shareMint",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "usdcVault",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "withdrawer",
+                    "isMut": true,
+                    "isSigner": true
+                },
+                {
+                    "name": "userUsdc",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "userShares",
+                    "isMut": true,
+                    "isSigner": false
+                },
+                {
+                    "name": "tokenProgram",
+                    "isMut": false,
+                    "isSigner": false
+                }
+            ],
+            "args": [
+                {
+                    "name": "shares",
+                    "type": "u64"
+                }
+            ]
+        }
+    ],
+    "accounts": [
+        {
+            "name": "VaultManager",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "authority",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "totalVaults",
+                        "type": "u64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Vault",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "manager",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "authority",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "usdcMint",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "shareMint",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "usdcVault",
+                        "type": "publicKey"
+                    },
+                    {
+                        "name": "totalAssets",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "totalShares",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "strategyType",
+                        "type": "string"
+                    },
+                    {
+                        "name": "isActive",
+                        "type": "bool"
+                    }
+                ]
+            }
+        }
+    ],
+    "address": "VLT1111111111111111111111111111111111111111"
+}

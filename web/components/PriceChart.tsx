@@ -28,7 +28,9 @@ interface HistoricalDataPoint {
 }
 
 export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
-    const { prices, loading, error, refetch } = usePythPrices([pair]);
+    const { prices, loading } = usePythPrices([pair]);
+    const error = null; // Not implemented in usePythPrices
+    const refetch = () => { }; // No-op for now
     const { theme } = useTheme();
     const [priceHistory, setPriceHistory] = useState<HistoricalDataPoint[]>([]);
     const [selectedScale, setSelectedScale] = useState(1); // 1h default
@@ -598,7 +600,7 @@ export default function PriceChart({ pair, onPriceUpdate }: PriceChartProps) {
                 )}
 
                 {/* Last Update */}
-                {priceData && (
+                {priceData && priceData.lastUpdate && (
                     <div className="absolute bottom-12 right-2 text-xs text-secondary/50">
                         Updated: {priceData.lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>

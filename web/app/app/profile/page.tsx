@@ -8,33 +8,43 @@ import {
     Calendar,
     Copy,
     Settings,
-    ExternalLink,
-    Share2
+    Share2,
+    Loader2
 } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
-const badges = [
-    { name: "Founding Trader", emoji: "🏆", description: "Bootstrap participant", earned: true },
-    { name: "First Trade", emoji: "🎯", description: "Completed first trade", earned: true },
-    { name: "1K Volume", emoji: "📈", description: "Traded $1K+ volume", earned: true },
-    { name: "10K Volume", emoji: "💰", description: "Traded $10K+ volume", earned: true },
-    { name: "100K Volume", emoji: "🚀", description: "Traded $100K+ volume", earned: false },
-    { name: "Win Streak 5", emoji: "🔥", description: "5 winning trades in a row", earned: true },
-    { name: "Win Streak 10", emoji: "⚡", description: "10 winning trades in a row", earned: false },
-    { name: "Copy Leader", emoji: "👥", description: "10+ copiers following you", earned: false },
-];
-
-const stats = {
-    totalTrades: 156,
-    winRate: 64,
-    totalVolume: 234500,
-    totalPnL: 12340,
-    bestTrade: 2450,
-    worstTrade: -890,
-    avgHoldTime: "4.2 hours",
-    joinDate: "Jan 2026",
+// Default stats when no data is available
+const defaultStats = {
+    totalTrades: 0,
+    winRate: 0,
+    totalVolume: 0,
+    totalPnL: 0,
+    bestTrade: 0,
+    worstTrade: 0,
+    avgHoldTime: "--",
+    creditBalance: 0,
+    lifetimeCreditsEarned: 0,
+    lifetimeCreditsSpent: 0,
+    bootstrapContribution: 0,
+    tier: "Owlet",
+    rank: 0,
+    joinDate: "--",
+    openPositions: 0,
 };
 
 export default function ProfilePage() {
+    const { stats: fetchedStats, badges, loading } = useProfile();
+
+    // Use default stats if fetched stats is null
+    const stats = fetchedStats || defaultStats;
+
+    if (loading) {
+        return (
+            <div className="max-w-7xl mx-auto flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-accent" />
+            </div>
+        );
+    }
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             {/* Profile Header */}

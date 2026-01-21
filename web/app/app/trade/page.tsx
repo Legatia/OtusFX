@@ -12,24 +12,31 @@ import {
     Eye,
     EyeOff,
     Users2,
-    Zap
+    Zap,
+    Star,
+    Shield,
+    Award,
+    ToggleLeft,
+    ToggleRight
 } from "lucide-react";
 import PriceChart from "@/components/PriceChart";
 import { usePythPrices, formatPrice, FX_PAIRS, PAIR_INFO } from "@/lib/pyth";
+import { useTrading, usePositions } from "@/hooks/useTrading";
 
 const leverageOptions = [1, 2, 5, 10, 15, 20, 25];
 
-// Demo positions with privacy
-const openPositions = [
-    { pair: "EUR/USD", direction: "Long", size: 5000, leverage: 10, pnl: 234.50, pnlPercent: 4.69, entry: 1.1580, liqPrice: 1.1045, isPrivate: true },
-    { pair: "GBP/USD", direction: "Short", size: 3000, leverage: 5, pnl: -87.20, pnlPercent: -2.91, entry: 1.3380, liqPrice: 1.4049, isPrivate: true },
-];
+// Copy signals require off-chain indexer for real data
+// For production: show empty state until copy trading indexer is implemented
+const copySignals: any[] = [];
 
-// Intent Copy signals
-const copySignals = [
-    { id: 1, trader: "Trader #4521", pair: "EUR/USD", direction: "Long", confidence: "High", copiers: 12, timeLeft: 45 },
-    { id: 2, trader: "Trader #8923", pair: "GBP/USD", direction: "Short", confidence: "Medium", copiers: 5, timeLeft: 23 },
-];
+// Owl tier styling (used for copy trading display)
+const tierColors: Record<string, { bg: string; text: string; icon: string; name: string }> = {
+    snowy: { bg: "bg-purple-500/20", text: "text-purple-300", icon: "🦉", name: "Snowy" },
+    great_horned: { bg: "bg-yellow-500/20", text: "text-yellow-400", icon: "🦉", name: "Great Horned" },
+    eagle: { bg: "bg-amber-500/20", text: "text-amber-400", icon: "🦅", name: "Eagle" },
+    barn: { bg: "bg-gray-400/20", text: "text-gray-300", icon: "🦉", name: "Barn" },
+    screech: { bg: "bg-gray-600/20", text: "text-gray-400", icon: "🪶", name: "Screech" },
+};
 
 export default function TradePage() {
     const [selectedPair, setSelectedPair] = useState(FX_PAIRS[0]);
@@ -40,11 +47,40 @@ export default function TradePage() {
     const [orderType, setOrderType] = useState<"market" | "limit">("market");
     const [currentPrice, setCurrentPrice] = useState(0);
 
+    const { openPosition, closePosition } = useTrading();
+    const { positions: realPositions, loading: positionsLoading, refetch: refetchPositions } = usePositions();
+
+    // Use real positions if available/connected, otherwise empty (don't show mock to confused user) OR show mock?
+    // Let's show real positions if length > 0, else show empy state. 
+    // Actually, user might confuse mock positions for real. 
+    // BETTER: Only show real positions. If local dev with no connection, show nothing.
+    const openPositions: any[] = realPositions.length > 0 ? realPositions : [];
+    const [allowCopying, setAllowCopying] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [closingPositionId, setClosingPositionId] = useState<string | null>(null);
+
     const { prices, loading } = usePythPrices(FX_PAIRS);
 
     const handlePriceUpdate = useCallback((price: number) => {
         setCurrentPrice(price);
     }, []);
+
+    // Handle closing a position
+    const handleClosePosition = async (pos: any) => {
+        try {
+            setClosingPositionId(pos.publicKey.toString());
+            // Convert pair back to format with slash (e.g., EURUSD -> EUR/USD)
+            const pair = pos.pair.slice(0, 3) + '/' + pos.pair.slice(3);
+            await closePosition(pos.publicKey, pair);
+            alert(`✅ Position closed successfully!`);
+            refetchPositions();
+        } catch (error: any) {
+            console.error(error);
+            alert(`Failed to close position: ${error.message}`);
+        } finally {
+            setClosingPositionId(null);
+        }
+    };
 
     const positionSize = parseFloat(amount || "0") * leverage;
     const entryPrice = currentPrice;
@@ -155,84 +191,180 @@ export default function TradePage() {
                             </span>
                         </div>
                         <div className="space-y-2">
-                            {openPositions.map((pos, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-center justify-between p-3 rounded-lg bg-background"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`px-2 py-1 rounded text-xs font-medium ${pos.direction === 'Long'
-                                            ? 'bg-emerald-500/10 text-emerald-400'
-                                            : 'bg-red-500/10 text-red-400'
-                                            }`}>
-                                            {pos.direction}
-                                        </div>
-                                        <div>
-                                            <span className="font-medium text-primary">{pos.pair}</span>
-                                            <span className="text-secondary text-xs ml-2">{pos.leverage}x</span>
-                                        </div>
-                                        {pos.isPrivate && (
-                                            <Lock className="w-3 h-3 text-purple-400" />
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-right">
-                                            <div className={`font-medium ${pos.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                {pos.pnl >= 0 ? '+' : ''}${pos.pnl.toFixed(2)}
-                                            </div>
-                                            <div className="text-xs text-secondary">
-                                                {pos.pnl >= 0 ? '+' : ''}{pos.pnlPercent}%
-                                            </div>
-                                        </div>
-                                        <button className="p-2 hover:bg-primary/5 rounded-lg transition-colors">
-                                            <X className="w-4 h-4 text-secondary" />
-                                        </button>
-                                    </div>
+                            {openPositions.length === 0 ? (
+                                <div className="text-center py-8 text-secondary text-sm">
+                                    No open positions
                                 </div>
-                            ))}
+                            ) : (
+                                openPositions.map((pos, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex items-center justify-between p-4 rounded-xl bg-background border border-border"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-1 h-12 rounded-full ${pos.side?.toLowerCase() === "long" ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-bold text-primary">{pos.pair}</span>
+                                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${pos.side?.toLowerCase() === "long"
+                                                        ? 'bg-emerald-500/10 text-emerald-500'
+                                                        : 'bg-red-500/10 text-red-500'
+                                                        }`}>
+                                                        {pos.side}
+                                                    </span>
+                                                    {pos.isPrivate && <Lock className="w-3 h-3 text-purple-400" />}
+                                                </div>
+                                                <div className="text-sm text-secondary mt-1">
+                                                    {pos.leverage}x • Entry: {formatPrice(pos.entryPrice || pos.entry)}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-right">
+                                                <div className={`font-bold ${(pos.pnl || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                    {(pos.pnl || 0) >= 0 ? '+' : ''}${(pos.pnl || 0).toFixed(2)}
+                                                </div>
+                                                <div className={`text-xs ${(pos.pnlPercent || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                    {(pos.pnlPercent || 0) >= 0 ? '+' : ''}{(pos.pnlPercent || 0).toFixed(2)}%
+                                                </div>
+                                                <div className="text-xs text-secondary mt-1">
+                                                    Size: ${pos.size.toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleClosePosition(pos)}
+                                                disabled={closingPositionId === pos.publicKey?.toString()}
+                                                className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                            >
+                                                {closingPositionId === pos.publicKey?.toString() ? (
+                                                    <>
+                                                        <div className="w-3 h-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+                                                        Closing...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <X className="w-3 h-3" />
+                                                        Close
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
 
-                    {/* Intent Copy Signals */}
+                    {/* Enhanced Intent Copy Signals */}
                     <div className="p-4 border-t border-border">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
                                 <Users2 className="w-4 h-4 text-accent" />
-                                Copy Signals
+                                Copy Trading Signals
                             </h3>
-                            <span className="text-xs text-secondary">via ShadowWire</span>
+                            <span className="flex items-center gap-1 text-xs text-purple-400">
+                                <Lock className="w-3 h-3" />
+                                via Arcium MPC
+                            </span>
                         </div>
-                        <div className="space-y-2">
-                            {copySignals.map((signal) => (
-                                <div
-                                    key={signal.id}
-                                    className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-accent/5 to-purple-500/5 border border-accent/10"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`px-2 py-1 rounded text-xs font-medium ${signal.direction === 'Long'
-                                            ? 'bg-emerald-500/10 text-emerald-400'
-                                            : 'bg-red-500/10 text-red-400'
-                                            }`}>
-                                            {signal.direction}
+                        <p className="text-xs text-secondary mb-3">
+                            Only verified traders (50+ trades, 55%+ win rate, reputation ≥70) can post signals.
+                        </p>
+                        <div className="space-y-3">
+                            {copySignals.map((signal) => {
+                                const tier = tierColors[signal.tier];
+                                return (
+                                    <div
+                                        key={signal.id}
+                                        className="p-4 rounded-xl bg-gradient-to-r from-accent/5 to-purple-500/5 border border-accent/10"
+                                    >
+                                        {/* Top Row: Direction, Pair, Tier Badge */}
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`px-2 py-1 rounded text-xs font-medium ${signal.direction === 'Long'
+                                                    ? 'bg-emerald-500/10 text-emerald-400'
+                                                    : 'bg-red-500/10 text-red-400'
+                                                    }`}>
+                                                    {signal.direction}
+                                                </div>
+                                                <span className="font-semibold text-primary">{signal.pair}</span>
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${tier.bg} ${tier.text}`}>
+                                                    {tier.icon} {tier.name}
+                                                </span>
+                                            </div>
+                                            <div className="text-xs text-secondary">
+                                                {signal.timeLeft}s left
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="font-medium text-primary">{signal.pair}</span>
-                                            <span className="text-secondary text-xs ml-2">by {signal.trader}</span>
+
+                                        {/* Middle Row: Trader Stats */}
+                                        <div className="flex items-center gap-4 mb-3 text-xs">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-secondary">by</span>
+                                                <span className="text-primary font-medium">{signal.trader}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Star className="w-3 h-3 text-yellow-400" />
+                                                <span className="text-primary">{signal.winRate}%</span>
+                                                <span className="text-secondary">win rate</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Shield className="w-3 h-3 text-emerald-400" />
+                                                <span className="text-primary">{signal.reputation}</span>
+                                                <span className="text-secondary">rep</span>
+                                            </div>
+                                            <div className="text-secondary">
+                                                ${(signal.totalVolume / 1000).toFixed(0)}K vol
+                                            </div>
                                         </div>
-                                        <Lock className="w-3 h-3 text-purple-400" />
+
+                                        {/* Bottom Row: Order Size, Copiers, Copy Button */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4 text-xs">
+                                                <span className="text-secondary">
+                                                    Order: <span className="text-primary">${signal.traderOrderSize.toLocaleString()}</span>
+                                                </span>
+                                                <span className="text-secondary">
+                                                    <span className="text-primary">{signal.copiers}</span> copying
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    // Demo: Pay commission via API (avoids WASM import)
+                                                    try {
+                                                        const fee = 50;
+                                                        alert(`Paying $${fee} private commission via ShadowWire...`);
+
+                                                        const res = await fetch('/api/privacy/commission', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                fromWallet: "demo-wallet",
+                                                                toWallet: "RECIPIENT_WALLET",
+                                                                amount: fee
+                                                            })
+                                                        });
+
+                                                        if (res.ok) {
+                                                            alert("Commission paid secretly! Copying started.");
+                                                        } else {
+                                                            throw new Error("API error");
+                                                        }
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                        alert("Simulation: Commission paid (mock)");
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5"
+                                            >
+                                                <Zap className="w-3.5 h-3.5" />
+                                                Copy Trade
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-right text-xs">
-                                            <div className="text-primary">{signal.copiers} copying</div>
-                                            <div className="text-secondary">{signal.timeLeft}s left</div>
-                                        </div>
-                                        <button className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-all flex items-center gap-1">
-                                            <Zap className="w-3 h-3" />
-                                            Copy
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </motion.div>
@@ -339,6 +471,39 @@ export default function TradePage() {
                         </div>
                     </div>
 
+                    {/* Allow Copying Toggle */}
+                    <div className="mb-6 p-4 rounded-xl bg-background border border-border">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Users2 className="w-4 h-4 text-accent" />
+                                <span className="text-sm font-medium text-primary">Allow Copying</span>
+                            </div>
+                            <button
+                                onClick={() => setAllowCopying(!allowCopying)}
+                                className="focus:outline-none"
+                            >
+                                {allowCopying ? (
+                                    <ToggleRight className="w-8 h-8 text-accent" />
+                                ) : (
+                                    <ToggleLeft className="w-8 h-8 text-secondary" />
+                                )}
+                            </button>
+                        </div>
+                        {allowCopying && (
+                            <div className="mt-3 space-y-2">
+                                <p className="text-xs text-secondary">
+                                    Your trade will be visible as a signal. Min $5K order required.
+                                </p>
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-secondary">Commission:</span>
+                                    <span className="text-emerald-400 font-medium">20% of copier profits</span>
+                                    <Lock className="w-3 h-3 text-purple-400" />
+                                    <span className="text-purple-400">via ShadowWire</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Order Summary */}
                     <div className="p-4 rounded-xl bg-background mb-6 space-y-3">
                         <div className="flex items-center justify-between text-sm">
@@ -368,20 +533,51 @@ export default function TradePage() {
                                 ${(positionSize * 0.0005).toFixed(2)}
                             </span>
                         </div>
+                        {allowCopying && (
+                            <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+                                <span className="text-purple-400 flex items-center gap-1">
+                                    <Users2 className="w-3 h-3" />
+                                    Copy Signal
+                                </span>
+                                <span className="text-purple-400 font-medium">
+                                    Enabled
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Submit Button */}
                     <button
-                        disabled={!amount || parseFloat(amount) <= 0 || currentPrice === 0}
+                        disabled={!amount || parseFloat(amount) <= 0 || currentPrice === 0 || isSubmitting}
+                        onClick={async () => {
+                            if (!amount) return;
+                            setIsSubmitting(true);
+                            try {
+                                const tx = await openPosition(
+                                    selectedPair,
+                                    direction,
+                                    parseFloat(amount),
+                                    leverage,
+                                    true // isPrivate default true for now
+                                );
+                                alert(`Position Opened! TX: ${tx}`);
+                                setAmount("");
+                            } catch (e: any) {
+                                console.error(e);
+                                alert(`Trade Failed: ${e.message}`);
+                            } finally {
+                                setIsSubmitting(false);
+                            }
+                        }}
                         className={`w-full py-4 rounded-xl font-semibold transition-all disabled:bg-surface disabled:text-secondary disabled:cursor-not-allowed ${direction === "long"
                             ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
                             : 'bg-red-500 hover:bg-red-600 text-white'
                             }`}
                     >
-                        {direction === "long" ? "Open Long" : "Open Short"} {selectedPair}
+                        {isSubmitting ? "Executing..." : `${direction === "long" ? "Open Long" : "Open Short"} ${selectedPair}`}
                     </button>
                 </motion.div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

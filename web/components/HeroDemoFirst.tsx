@@ -29,7 +29,27 @@ export default function HeroDemoFirst() {
 
     return (
         <section className="relative min-h-screen flex items-center py-20 px-4">
-            {/* Background removed - now using global EncryptedBackground */}
+            {/* Hero-specific logo background - above matrix, below content */}
+            <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
+                {/* Large centered logo with glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px]">
+                    <img
+                        src="/logos/OtusFX.png"
+                        alt=""
+                        className="w-full h-full object-contain opacity-[0.08]"
+                        style={{
+                            filter: "blur(1px)",
+                        }}
+                    />
+                    {/* Glow effect behind logo */}
+                    <div
+                        className="absolute inset-0 rounded-full blur-[100px] opacity-30"
+                        style={{
+                            background: "radial-gradient(circle, rgba(255,102,26,0.3) 0%, transparent 70%)"
+                        }}
+                    />
+                </div>
+            </div>
 
             <div className="container relative z-10 mx-auto">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">

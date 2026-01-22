@@ -1,0 +1,1 @@
+/Users/tobiasd/Desktop/stablefi/Solana/programs/trading_engine/target/sbpf-solana-solana/release/libcredits.rlib: /Users/tobiasd/Desktop/stablefi/Solana/programs/trading_engine/programs/credits/src/lib.rs

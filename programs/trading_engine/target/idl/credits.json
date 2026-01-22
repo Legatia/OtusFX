@@ -1,0 +1,487 @@
+{
+  "address": "GGnGnYrqv1iFaNzPsVTBAt8Cs2Zkn8qFMMHxNttU91LF",
+  "metadata": {
+    "name": "credits",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "burn_credits",
+      "docs": [
+        "Burn credits (spend in marketplace)"
+      ],
+      "discriminator": [
+        44,
+        105,
+        37,
+        185,
+        114,
+        18,
+        97,
+        88
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "credit_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "item_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_account",
+      "docs": [
+        "Create a credit account for a user (soul-bound, no transfer)"
+      ],
+      "discriminator": [
+        99,
+        20,
+        130,
+        119,
+        196,
+        235,
+        131,
+        149
+      ],
+      "accounts": [
+        {
+          "name": "credit_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "get_balance",
+      "docs": [
+        "Get balance (view function)"
+      ],
+      "discriminator": [
+        5,
+        173,
+        180,
+        151,
+        243,
+        81,
+        233,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "credit_account"
+        }
+      ],
+      "args": [],
+      "returns": "u64"
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Initialize the credits config (admin only)"
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "trading_rate",
+          "type": "u64"
+        },
+        {
+          "name": "deposit_rate",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "mint_credits",
+      "docs": [
+        "Mint credits to a user (authorized callers only)"
+      ],
+      "discriminator": [
+        210,
+        43,
+        79,
+        176,
+        4,
+        212,
+        31,
+        116
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "credit_account",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Authority or authorized program (trading_engine, bootstrap, etc.)"
+          ],
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "source",
+          "type": {
+            "defined": {
+              "name": "CreditSource"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "CreditAccount",
+      "discriminator": [
+        196,
+        171,
+        234,
+        132,
+        239,
+        255,
+        21,
+        96
+      ]
+    },
+    {
+      "name": "CreditsConfig",
+      "discriminator": [
+        51,
+        127,
+        46,
+        105,
+        211,
+        170,
+        215,
+        16
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "CreditsPurchase",
+      "discriminator": [
+        0,
+        151,
+        89,
+        213,
+        60,
+        246,
+        136,
+        127
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAmount",
+      "msg": "Invalid amount"
+    },
+    {
+      "code": 6001,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient balance"
+    },
+    {
+      "code": 6002,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    },
+    {
+      "code": 6003,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "CreditAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "balance",
+            "type": "u64"
+          },
+          {
+            "name": "lifetime_earned",
+            "type": "u64"
+          },
+          {
+            "name": "lifetime_spent",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreditSource",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Trading"
+          },
+          {
+            "name": "Deposit"
+          },
+          {
+            "name": "Referral"
+          },
+          {
+            "name": "Bootstrap"
+          },
+          {
+            "name": "CopyTrading"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreditsConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "trading_rate",
+            "type": "u64"
+          },
+          {
+            "name": "deposit_rate",
+            "type": "u64"
+          },
+          {
+            "name": "total_minted",
+            "type": "u64"
+          },
+          {
+            "name": "total_burned",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreditsPurchase",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "item_id",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+/Users/tobiasd/Desktop/stablefi/Solana/programs/trading_engine/target/sbpf-solana-solana/release/libbootstrap.rlib: /Users/tobiasd/Desktop/stablefi/Solana/programs/trading_engine/programs/bootstrap/src/lib.rs

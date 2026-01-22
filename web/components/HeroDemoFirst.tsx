@@ -29,8 +29,7 @@ export default function HeroDemoFirst() {
 
     return (
         <section className="relative min-h-screen flex items-center py-20 px-4">
-            {/* Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-accent/5" />
+            {/* Background removed - now using global EncryptedBackground */}
 
             <div className="container relative z-10 mx-auto">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -51,8 +50,8 @@ export default function HeroDemoFirst() {
                             transition={{ delay: 0.1 }}
                             className="text-4xl md:text-6xl font-bold text-primary mb-6 leading-tight"
                         >
-                            See Your Orders<br />
-                            <span className="text-accent">Stay Invisible</span>
+                            Trade Without<br />
+                            <span className="text-accent">A Trace</span>
                         </motion.h1>
 
                         <motion.p

@@ -7,7 +7,7 @@ const steps = [
     {
         id: "01",
         title: "Confidential Execution",
-        description: "Positions are encrypted using Arcium C-SPL. Your trade size, direction, and leverage remain private on-chain.",
+        description: "Positions and order details are encrypted using Arcium, Privacy cash and ShadowWire. Your trade size, direction, and leverage remain private on-chain.",
         icon: Lock,
         color: "text-purple-400",
         bg: "bg-purple-400/10",

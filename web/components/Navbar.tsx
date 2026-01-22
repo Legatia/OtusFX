@@ -52,7 +52,7 @@ export default function Navbar() {
                             </a>
                         ))}
                         <a
-                            href="https://docs.otusfx.xyz"
+                            href="https://github.com/Legatia/OtusFX/tree/landing/demo-first/OtusFX_docs"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-secondary hover:text-white transition-colors text-sm font-medium"
@@ -65,15 +65,9 @@ export default function Navbar() {
                     <div className="flex items-center gap-3">
                         <Link
                             href="/demo"
-                            className="hidden sm:block px-5 py-2.5 bg-surface hover:bg-surface-hover border border-border text-primary font-medium rounded-full transition-all text-sm"
-                        >
-                            Demo
-                        </Link>
-                        <Link
-                            href="/app"
                             className="group flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-full transition-all shadow-[0_0_20px_-5px_rgba(255,102,26,0.4)] hover:shadow-[0_0_30px_-5px_rgba(255,102,26,0.6)]"
                         >
-                            <span className="text-sm">Launch App</span>
+                            <span className="text-sm">Demo</span>
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                         </Link>
 
@@ -123,7 +117,7 @@ export default function Navbar() {
                                     </a>
                                 ))}
                                 <a
-                                    href="https://docs.otusfx.xyz"
+                                    href="https://github.com/Legatia/OtusFX/tree/landing/demo-first/OtusFX_docs"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-lg text-secondary hover:text-white transition-colors py-2"

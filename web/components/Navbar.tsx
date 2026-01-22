@@ -22,7 +22,7 @@ export default function Navbar() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="fixed top-0 left-0 right-0 z-50 px-4 py-4"
+                className="sticky top-0 z-50 px-4 py-4 bg-background/80 backdrop-blur-md border-b border-border/50"
             >
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     {/* Logo */}
@@ -86,9 +86,6 @@ export default function Navbar() {
                         </button>
                     </div>
                 </div>
-
-                {/* Fully transparent navbar - no backdrop */}
-                <div className="absolute inset-0 -z-10" />
             </motion.nav>
 
             {/* Mobile Menu Overlay */}

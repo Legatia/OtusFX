@@ -109,6 +109,7 @@ const items = [
 
 import { TrendingUp, User, Award } from "lucide-react";
 import { useCredits } from "@/hooks/useCredits";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 export default function MarketplacePage() {
     const [selectedCategory, setSelectedCategory] = useState("all");
@@ -124,27 +125,11 @@ export default function MarketplacePage() {
     } = useCredits();
 
     const userCredits = creditsBalance;
+    const { showComingSoon } = useComingSoon();
 
     // Handle purchase
     const handlePurchase = async (item: typeof items[0]) => {
-        if (purchasingItemId) return; // Prevent double-click
-
-        try {
-            setPurchasingItemId(item.id);
-
-            // Create credit account if it doesn't exist (first-time buyers)
-            if (!accountExists) {
-                await createAccount();
-            }
-
-            await burnCredits(item.price, item.id);
-            alert(`✅ Purchased ${item.name} for ${item.price} credits!`);
-        } catch (error: any) {
-            console.error(error);
-            alert(`Failed to purchase: ${error.message}`);
-        } finally {
-            setPurchasingItemId(null);
-        }
+        showComingSoon("Marketplace");
     };
 
     const filteredItems = selectedCategory === "all"

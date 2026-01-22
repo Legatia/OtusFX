@@ -10,6 +10,7 @@ import {
     ChevronDown
 } from "lucide-react";
 import { useState } from "react";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 const mockPrices = {
     OTUS: 0.12,
@@ -28,6 +29,7 @@ export default function SwapPage() {
     const [toToken, setToToken] = useState<"OTUS" | "USDC" | "USD1">("OTUS");
     const [fromAmount, setFromAmount] = useState("100");
     const [toAmount, setToAmount] = useState("");
+    const { showComingSoon } = useComingSoon();
 
     const handleSwap = () => {
         // Calculate swap
@@ -184,7 +186,7 @@ export default function SwapPage() {
 
                 {/* Swap Action */}
                 <button
-                    onClick={handleSwap}
+                    onClick={() => showComingSoon("Token Swap")}
                     className="w-full mt-6 px-6 py-4 rounded-xl bg-gradient-to-r from-accent to-amber-500 hover:from-accent/80 hover:to-amber-500/80 transition-all font-semibold text-background"
                 >
                     Swap {fromToken} for {toToken}
@@ -209,7 +211,10 @@ export default function SwapPage() {
                         Floor: $0.095
                     </div>
                 </div>
-                <button className="w-full px-4 py-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 transition-colors text-purple-400 font-medium">
+                <button
+                    onClick={() => showComingSoon("Treasury Redemption")}
+                    className="w-full px-4 py-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 transition-colors text-purple-400 font-medium"
+                >
                     Redeem at Floor Price
                 </button>
             </motion.div>

@@ -17,6 +17,7 @@ import {
 
 import { useBootstrap } from "@/hooks/useBootstrap";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 // Tier configuration (static, defined by protocol)
 const tiers = [
@@ -60,42 +61,10 @@ export default function BootstrapPage() {
     // TODO: Fetch from contract - for now show if user has credits
     const userHasDeposited = credits > 0;
 
+    const { showComingSoon } = useComingSoon();
+
     const handleDeposit = async () => {
-        if (!depositAmount || !wallet) {
-            if (!wallet) alert("Please connect your wallet first");
-            return;
-        }
-        setIsDepositing(true);
-        try {
-            const amount = parseFloat(depositAmount);
-
-            if (isPrivate) {
-                // ZK Deposit with Privacy Cash
-                const { privateDeposit } = await import('@/lib/privacy-cash');
-
-                const zkTx = await privateDeposit({
-                    wallet: wallet.publicKey.toString(),
-                    amount,
-                    token: 'USDC'
-                });
-
-                // Register with Bootstrap Contract for Tier tracking
-                const tx = await depositPrivate(amount, zkTx.txHash);
-
-                alert(`🔒 Private Deposit Successful!\n\n1. Funds secured in ZK Pool\n2. Tier Registered: ${tx.substring(0, 8)}...`);
-            } else {
-                // Public Deposit
-                const tx = await depositPublic(amount);
-                alert(`✅ Public Deposit Successful!\n\nTX: ${tx}`);
-            }
-
-            setDepositAmount("");
-        } catch (error: any) {
-            console.error(error);
-            alert(`Deposit failed: ${error.message || error}`);
-        } finally {
-            setIsDepositing(false);
-        }
+        showComingSoon("Bootstrap Liquidity");
     };
 
     // Production: Always use real data (show 0 if not loaded)

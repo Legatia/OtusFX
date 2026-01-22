@@ -12,6 +12,7 @@ import {
     DollarSign
 } from "lucide-react";
 import { useState } from "react";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 const mockOTUSBalance = 45230;
 const mockStaked = 25000;
@@ -37,6 +38,7 @@ const stakingHistory = [
 export default function StakePage() {
     const [stakeAmount, setStakeAmount] = useState("");
     const [selectedLockPeriod, setSelectedLockPeriod] = useState(0);
+    const { showComingSoon } = useComingSoon();
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
@@ -181,7 +183,10 @@ export default function StakePage() {
                     )}
 
                     {/* Stake Button */}
-                    <button className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-accent to-amber-500 hover:from-accent/80 hover:to-amber-500/80 transition-all font-semibold text-background">
+                    <button
+                        onClick={() => showComingSoon("OTUS Staking")}
+                        className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-accent to-amber-500 hover:from-accent/80 hover:to-amber-500/80 transition-all font-semibold text-background"
+                    >
                         {selectedLockPeriod === 0 ? 'Stake OTUS' : `Stake with ${lockPeriods[selectedLockPeriod].days}-Day Lock`}
                     </button>
 

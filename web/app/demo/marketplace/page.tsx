@@ -108,10 +108,12 @@ const items = [
 ];
 
 import { TrendingUp, User, Award } from "lucide-react";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 // DEMO: Static mock data - no smart contract connection
 export default function DemoMarketplacePage() {
     const [selectedCategory, setSelectedCategory] = useState("all");
+    const { showComingSoon } = useComingSoon();
 
     // Demo mock data
     const userCredits = 12450;
@@ -226,6 +228,7 @@ export default function DemoMarketplacePage() {
                                 </div>
                                 <button
                                     disabled={!canAfford}
+                                    onClick={() => canAfford && showComingSoon("Marketplace")}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${canAfford
                                         ? 'bg-accent hover:bg-accent-hover text-white'
                                         : 'bg-surface text-secondary cursor-not-allowed'

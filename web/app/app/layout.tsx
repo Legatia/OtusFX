@@ -22,6 +22,7 @@ import {
 import { useState, Suspense } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { ComingSoonProvider } from "@/components/ComingSoonModal";
 
 const navItems = [
     { href: "/app", label: "Dashboard", icon: Home },
@@ -145,8 +146,10 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-background" />}>
-            <AppLayoutContent>{children}</AppLayoutContent>
-        </Suspense>
+        <ComingSoonProvider>
+            <Suspense fallback={<div className="min-h-screen bg-background" />}>
+                <AppLayoutContent>{children}</AppLayoutContent>
+            </Suspense>
+        </ComingSoonProvider>
     );
 }

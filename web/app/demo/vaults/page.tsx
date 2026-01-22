@@ -94,41 +94,9 @@ export default function DemoVaultsPage() {
 
     const handleDeposit = async () => {
         if (!depositAmount || !selectedVault) return;
-
-        setIsDepositing(true);
-
-        try {
-            if (isPrivateDeposit) {
-                // Use Privacy Cash for private deposits
-                const response = await fetch('/api/privacy/vault-deposit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        wallet: 'demo-wallet', // In production: from wallet adapter
-                        vaultPubkey: selectedVault.id,
-                        amount: depositAmount,
-                        token: 'USDC',
-                    }),
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(`🔒 Private Deposit Success!\n\nAmount: ${depositAmount} USDC\nCommitment: ${result.commitment?.slice(0, 16)}...\nShares: ${result.sharesReceived}`);
-                } else {
-                    throw new Error(result.error);
-                }
-            } else {
-                // Public deposit would use standard vault deposit
-                showComingSoon("Public Vault Deposits");
-            }
-        } catch (error: any) {
-            alert(`Deposit failed: ${error.message}`);
-        } finally {
-            setDepositAmount("");
-            setSelectedVault(null);
-            setIsDepositing(false);
-        }
+        showComingSoon("Strategy Vaults");
+        setDepositAmount("");
+        setSelectedVault(null);
     };
 
     return (

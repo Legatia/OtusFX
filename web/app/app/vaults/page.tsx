@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { useVaults } from "@/hooks/useVaults";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 // Production: No mock data - user deposits will be fetched from chain
 // TODO: Add useUserVaultDeposits hook to fetch user's share balances
@@ -49,20 +50,12 @@ export default function VaultsPage() {
         lockPeriod: v.lockPeriodDays,
     }));
 
+    const { showComingSoon } = useComingSoon();
+
     const handleDeposit = async () => {
-        if (!selectedVault || !depositAmount) return;
-        setIsDepositing(true);
-        try {
-            await deposit(selectedVault.publicKey, parseFloat(depositAmount));
-            alert("Deposit successful!");
-            setDepositAmount("");
-            setSelectedVault(null);
-        } catch (e: any) {
-            console.error(e);
-            alert(`Deposit failed: ${e.message}`);
-        } finally {
-            setIsDepositing(false);
-        }
+        showComingSoon("Strategy Vaults");
+        setDepositAmount("");
+        setSelectedVault(null);
     };
 
     // ... rest of render ...

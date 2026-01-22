@@ -22,6 +22,7 @@ import {
 import PriceChart from "@/components/PriceChart";
 import { usePythPrices, formatPrice, FX_PAIRS, PAIR_INFO } from "@/lib/pyth";
 import { useTrading, usePositions } from "@/hooks/useTrading";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 const leverageOptions = [1, 2, 5, 10, 15, 20, 25];
 
@@ -60,6 +61,7 @@ export default function TradePage() {
     const [closingPositionId, setClosingPositionId] = useState<string | null>(null);
 
     const { prices, loading } = usePythPrices(FX_PAIRS);
+    const { showComingSoon } = useComingSoon();
 
     const handlePriceUpdate = useCallback((price: number) => {
         setCurrentPrice(price);
@@ -233,21 +235,11 @@ export default function TradePage() {
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => handleClosePosition(pos)}
-                                                disabled={closingPositionId === pos.publicKey?.toString()}
-                                                className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                                onClick={() => showComingSoon("Trading")}
+                                                className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all flex items-center gap-1"
                                             >
-                                                {closingPositionId === pos.publicKey?.toString() ? (
-                                                    <>
-                                                        <div className="w-3 h-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
-                                                        Closing...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <X className="w-3 h-3" />
-                                                        Close
-                                                    </>
-                                                )}
+                                                <X className="w-3 h-3" />
+                                                Close
                                             </button>
                                         </div>
                                     </div>
@@ -330,32 +322,7 @@ export default function TradePage() {
                                                 </span>
                                             </div>
                                             <button
-                                                onClick={async () => {
-                                                    // Demo: Pay commission via API (avoids WASM import)
-                                                    try {
-                                                        const fee = 50;
-                                                        alert(`Paying $${fee} private commission via ShadowWire...`);
-
-                                                        const res = await fetch('/api/privacy/commission', {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({
-                                                                fromWallet: "demo-wallet",
-                                                                toWallet: "RECIPIENT_WALLET",
-                                                                amount: fee
-                                                            })
-                                                        });
-
-                                                        if (res.ok) {
-                                                            alert("Commission paid secretly! Copying started.");
-                                                        } else {
-                                                            throw new Error("API error");
-                                                        }
-                                                    } catch (e) {
-                                                        console.error(e);
-                                                        alert("Simulation: Commission paid (mock)");
-                                                    }
-                                                }}
+                                                onClick={() => showComingSoon("Copy Trading")}
                                                 className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5"
                                             >
                                                 <Zap className="w-3.5 h-3.5" />
@@ -548,33 +515,14 @@ export default function TradePage() {
 
                     {/* Submit Button */}
                     <button
-                        disabled={!amount || parseFloat(amount) <= 0 || currentPrice === 0 || isSubmitting}
-                        onClick={async () => {
-                            if (!amount) return;
-                            setIsSubmitting(true);
-                            try {
-                                const tx = await openPosition(
-                                    selectedPair,
-                                    direction,
-                                    parseFloat(amount),
-                                    leverage,
-                                    true // isPrivate default true for now
-                                );
-                                alert(`Position Opened! TX: ${tx}`);
-                                setAmount("");
-                            } catch (e: any) {
-                                console.error(e);
-                                alert(`Trade Failed: ${e.message}`);
-                            } finally {
-                                setIsSubmitting(false);
-                            }
-                        }}
+                        disabled={!amount || parseFloat(amount) <= 0 || currentPrice === 0}
+                        onClick={() => showComingSoon("Trading")}
                         className={`w-full py-4 rounded-xl font-semibold transition-all disabled:bg-surface disabled:text-secondary disabled:cursor-not-allowed ${direction === "long"
                             ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
                             : 'bg-red-500 hover:bg-red-600 text-white'
                             }`}
                     >
-                        {isSubmitting ? "Executing..." : `${direction === "long" ? "Open Long" : "Open Short"} ${selectedPair}`}
+                        {`${direction === "long" ? "Open Long" : "Open Short"} ${selectedPair}`}
                     </button>
                 </motion.div>
             </div >

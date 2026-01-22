@@ -56,10 +56,13 @@ const stats = {
     avgProfit: 0.09,
 };
 
+import { useComingSoon } from "@/components/ComingSoonModal";
+
 export default function ArbPage() {
     const [selectedOpp, setSelectedOpp] = useState<typeof opportunities[0] | null>(null);
     const [arbSize, setArbSize] = useState("1000");
     const [showHidden, setShowHidden] = useState(false);
+    const { showComingSoon } = useComingSoon();
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
@@ -189,7 +192,13 @@ export default function ArbPage() {
                                             {opp.expiresIn}s
                                         </span>
                                     </div>
-                                    <button className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-all flex items-center gap-1">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            showComingSoon("Private Arb");
+                                        }}
+                                        className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-all flex items-center gap-1"
+                                    >
                                         <Play className="w-3 h-3" />
                                         Execute
                                     </button>

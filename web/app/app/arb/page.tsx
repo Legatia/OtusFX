@@ -16,6 +16,7 @@ import {
     Loader2
 } from "lucide-react";
 import { useArbitrage } from "@/hooks/useArbitrage";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 export default function ArbPage() {
     const { opportunities, executedArbs, stats, loading, executeArb, refresh } = useArbitrage();
@@ -24,15 +25,10 @@ export default function ArbPage() {
     const [showHidden, setShowHidden] = useState(false);
     const [executing, setExecuting] = useState(false);
 
+    const { showComingSoon } = useComingSoon();
+
     const handleExecuteArb = async (opp: any) => {
-        setExecuting(true);
-        try {
-            await executeArb(opp, Number(arbSize));
-        } catch (e) {
-            console.error("Arb execution failed:", e);
-        } finally {
-            setExecuting(false);
-        }
+        showComingSoon("Private Arb");
     };
 
     return (

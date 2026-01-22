@@ -14,6 +14,7 @@ import {
     Loader2
 } from "lucide-react";
 import { useLendingPool } from "@/hooks/useLendingPool";
+import { useComingSoon } from "@/components/ComingSoonModal";
 
 // Interest rate model visualization data (static model)
 const utilizationPoints = [
@@ -33,6 +34,7 @@ export default function LendPage() {
     const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
     const [amount, setAmount] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const { showComingSoon } = useComingSoon();
 
     const handleMaxClick = () => {
         if (activeTab === "deposit") {
@@ -260,6 +262,7 @@ export default function LendPage() {
 
                         {/* Action Button */}
                         <button
+                            onClick={() => showComingSoon("Lending Pool")}
                             className={`w-full py-4 rounded-xl font-semibold transition-all ${activeTab === "deposit"
                                 ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                                 : "bg-accent hover:bg-accent-hover text-white"

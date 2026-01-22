@@ -82,6 +82,8 @@ export function getExtDataHash(extData: {
     : Buffer.alloc(0); // Empty buffer if not provided
 
   // Define the borsh schema matching the Rust struct
+  // Note: Using borsh v2.0 schema format. Type assertion needed due to
+  // conflicting borsh type definitions from @solana/web3.js (v0.7.x types)
   const schema = {
     struct: {
       recipient: { array: { type: 'u8', len: 32 } },
@@ -92,7 +94,7 @@ export function getExtDataHash(extData: {
       feeRecipient: { array: { type: 'u8', len: 32 } },
       mintAddress: { array: { type: 'u8', len: 32 } },
     }
-  };
+  } as const;
 
   const value = {
     recipient: recipient.toBytes(),
@@ -105,7 +107,8 @@ export function getExtDataHash(extData: {
   };
 
   // Serialize with Borsh
-  const serializedData = borsh.serialize(schema, value);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serializedData = borsh.serialize(schema as any, value);
 
   // Calculate the SHA-256 hash
   const hashHex = sha256(serializedData);

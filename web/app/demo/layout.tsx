@@ -29,7 +29,7 @@ const navItems = [
     { href: "/demo/bootstrap", label: "Bootstrap", icon: Gift, badge: "Demo" },
     { href: "/demo/trade", label: "Trade", icon: TrendingUp },
     { href: "/demo/vaults", label: "Vaults", icon: Vault },
-    { href: "/demo/arb", label: "Arb", icon: RefreshCw },
+    // { href: "/demo/arb", label: "Arb", icon: RefreshCw }, // Postponed
     { href: "/demo/lend", label: "Lend", icon: Coins },
     { href: "/demo/swap", label: "Swap OTUS", icon: ArrowDownUp },
     { href: "/demo/stake", label: "Stake OTUS", icon: Lock },

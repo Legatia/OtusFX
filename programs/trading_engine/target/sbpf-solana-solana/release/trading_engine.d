@@ -1,1 +1,0 @@
-/Users/tobiasd/Desktop/stablefi/Solana/programs/trading_engine/target/sbpf-solana-solana/release/trading_engine.so: /Users/tobiasd/Desktop/stablefi/Solana/programs/trading_engine/programs/trading_engine/src/lib.rs

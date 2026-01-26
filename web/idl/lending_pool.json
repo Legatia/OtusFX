@@ -1,0 +1,736 @@
+{
+  "address": "LendingPoo111111111111111111111111111111111",
+  "metadata": {
+    "name": "lending_pool",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "OtusFX Lending Pool - Liquidity provision for leveraged trading with OTUS interest rewards"
+  },
+  "instructions": [
+    {
+      "name": "initialize_lending",
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lending_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_vault",
+          "writable": true
+        },
+        {
+          "name": "usd1_vault",
+          "writable": true
+        },
+        {
+          "name": "otus_vault",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "base_interest_rate",
+          "type": "u16"
+        },
+        {
+          "name": "utilization_multiplier",
+          "type": "u16"
+        },
+        {
+          "name": "max_utilization_rate",
+          "type": "u16"
+        },
+        {
+          "name": "reserve_factor",
+          "type": "u16"
+        },
+        {
+          "name": "initial_otus_price_usd",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_lender_position",
+      "discriminator": [142, 19, 83, 251, 166, 93, 102, 59],
+      "accounts": [
+        {
+          "name": "lender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lending_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "lender_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 101, 114, 95, 112, 111, 115, 105, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "lender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "deposit_liquidity",
+      "discriminator": [208, 75, 235, 155, 206, 154, 90, 80],
+      "accounts": [
+        {
+          "name": "lender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lending_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "lender_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 101, 114, 95, 112, 111, 115, 105, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "lender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_vault",
+          "writable": true
+        },
+        {
+          "name": "usd1_vault",
+          "writable": true
+        },
+        {
+          "name": "lender_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "stablecoin_type",
+          "type": {
+            "defined": {
+              "name": "StablecoinType"
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_liquidity",
+      "discriminator": [24, 145, 48, 176, 110, 245, 155, 88],
+      "accounts": [
+        {
+          "name": "lender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lending_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "lender_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 101, 114, 95, 112, 111, 115, 105, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "lender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_vault",
+          "writable": true
+        },
+        {
+          "name": "usd1_vault",
+          "writable": true
+        },
+        {
+          "name": "otus_vault",
+          "writable": true
+        },
+        {
+          "name": "lender_token_account",
+          "writable": true
+        },
+        {
+          "name": "lender_otus_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "stablecoin_type",
+          "type": {
+            "defined": {
+              "name": "StablecoinType"
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "borrow_for_leverage",
+      "discriminator": [143, 228, 108, 98, 245, 89, 126, 12],
+      "accounts": [
+        {
+          "name": "trading_position"
+        },
+        {
+          "name": "lending_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "borrow_position",
+          "writable": true
+        },
+        {
+          "name": "usdc_vault",
+          "writable": true
+        },
+        {
+          "name": "usd1_vault",
+          "writable": true
+        },
+        {
+          "name": "trading_engine_token_account",
+          "writable": true
+        },
+        {
+          "name": "trading_engine_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "stablecoin_type",
+          "type": {
+            "defined": {
+              "name": "StablecoinType"
+            }
+          }
+        },
+        {
+          "name": "borrow_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "repay_borrow",
+      "discriminator": [112, 173, 101, 62, 94, 225, 251, 36],
+      "accounts": [
+        {
+          "name": "trading_position"
+        },
+        {
+          "name": "lending_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "borrow_position",
+          "writable": true
+        },
+        {
+          "name": "usdc_vault",
+          "writable": true
+        },
+        {
+          "name": "usd1_vault",
+          "writable": true
+        },
+        {
+          "name": "trading_engine_token_account",
+          "writable": true
+        },
+        {
+          "name": "trading_engine_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "stablecoin_type",
+          "type": {
+            "defined": {
+              "name": "StablecoinType"
+            }
+          }
+        },
+        {
+          "name": "repay_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "accrue_pool_interest",
+      "discriminator": [89, 233, 142, 177, 25, 94, 181, 215],
+      "accounts": [
+        {
+          "name": "lending_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claim_otus_rewards",
+      "discriminator": [149, 95, 181, 242, 94, 90, 158, 162],
+      "accounts": [
+        {
+          "name": "lender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lending_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "lender_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 101, 114, 95, 112, 111, 115, 105, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "lender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "otus_vault",
+          "writable": true
+        },
+        {
+          "name": "lender_otus_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_lending_config",
+      "discriminator": [221, 48, 241, 117, 246, 163, 122, 68],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "lending_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "base_interest_rate",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "utilization_multiplier",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "max_utilization_rate",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "reserve_factor",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "otus_price_usd",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "LendingConfig",
+      "discriminator": [246, 103, 25, 166, 179, 213, 105, 216],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "usdc_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "usd1_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_deposited_usdc",
+            "type": "u64"
+          },
+          {
+            "name": "total_deposited_usd1",
+            "type": "u64"
+          },
+          {
+            "name": "total_borrowed",
+            "type": "u64"
+          },
+          {
+            "name": "total_reserves",
+            "type": "u64"
+          },
+          {
+            "name": "base_interest_rate",
+            "type": "u16"
+          },
+          {
+            "name": "utilization_multiplier",
+            "type": "u16"
+          },
+          {
+            "name": "max_utilization_rate",
+            "type": "u16"
+          },
+          {
+            "name": "reserve_factor",
+            "type": "u16"
+          },
+          {
+            "name": "last_update_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "otus_price_usd",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LenderPosition",
+      "discriminator": [133, 45, 136, 87, 252, 243, 142, 89],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lender",
+            "type": "pubkey"
+          },
+          {
+            "name": "usdc_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "usd1_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "total_usd_value",
+            "type": "u64"
+          },
+          {
+            "name": "otus_interest_earned",
+            "type": "u64"
+          },
+          {
+            "name": "otus_interest_claimed",
+            "type": "u64"
+          },
+          {
+            "name": "deposit_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "last_interest_update",
+            "type": "i64"
+          },
+          {
+            "name": "cumulative_usdc_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "cumulative_usd1_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "cumulative_usdc_withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "cumulative_usd1_withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BorrowPosition",
+      "discriminator": [45, 186, 154, 203, 98, 105, 254, 77],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "trading_position",
+            "type": "pubkey"
+          },
+          {
+            "name": "stablecoin_type",
+            "type": {
+              "defined": {
+                "name": "StablecoinType"
+              }
+            }
+          },
+          {
+            "name": "borrowed_amount",
+            "type": "u64"
+          },
+          {
+            "name": "interest_accrued",
+            "type": "u64"
+          },
+          {
+            "name": "borrow_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "last_interest_update",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "StablecoinType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "USDC"
+          },
+          {
+            "name": "USD1"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAmount",
+      "msg": "Invalid amount"
+    },
+    {
+      "code": 6002,
+      "name": "InsufficientLiquidity",
+      "msg": "Insufficient liquidity"
+    },
+    {
+      "code": 6003,
+      "name": "MaxUtilizationExceeded",
+      "msg": "Max utilization exceeded"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidBorrowAmount",
+      "msg": "Invalid borrow amount"
+    },
+    {
+      "code": 6005,
+      "name": "InsufficientRepayment",
+      "msg": "Insufficient repayment"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidStablecoin",
+      "msg": "Invalid stablecoin type"
+    },
+    {
+      "code": 6007,
+      "name": "ArithmeticOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6008,
+      "name": "ArithmeticUnderflow",
+      "msg": "Arithmetic underflow"
+    }
+  ]
+}

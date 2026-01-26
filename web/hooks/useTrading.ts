@@ -10,6 +10,13 @@ import idl from "../idl/trading_engine.json";
 
 const PROGRAM_ID = new PublicKey(idl.address);
 
+// Token mints (devnet)
+const USDC_MINT = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"); // ✅ Devnet USDC
+const USD1_MINT = new PublicKey("2yyHi6Q84oyjmAcMqP9UfuCmftzSjbFpXxTDRUZN9GFi"); // ✅ Devnet USD1 (test)
+const OTUS_MINT = new PublicKey("Bax4q8hoKoAFsN5GTCggMXkDUTyroLFmeveF9hm7rttV"); // ✅ Devnet OTUS Token
+
+export type StablecoinType = "USDC" | "USD1";
+
 export function useTrading() {
     const { connection } = useConnection();
     const wallet = useAnchorWallet();
@@ -39,7 +46,8 @@ export function useTrading() {
         side: "long" | "short",
         marginAmount: number,
         leverage: number,
-        isPrivate: boolean
+        isPrivate: boolean,
+        collateralType: StablecoinType = "USDC"
     ) => {
         if (!program || !wallet) throw new Error("Wallet not connected");
 
@@ -52,10 +60,14 @@ export function useTrading() {
                 PROGRAM_ID
             );
 
-            // 2. Fetch Config to get Vault and Total Positions
+            // 2. Fetch Config to get Vaults and Total Positions
             const configAccount = await (program.account as any).tradingConfig.fetch(configPda);
             const totalPositions = configAccount.totalPositions as BN;
             const usdcVault = configAccount.usdcVault as PublicKey;
+            const usd1Vault = configAccount.usd1Vault as PublicKey;
+
+            // Select vault based on collateral type
+            const selectedVault = collateralType === "USDC" ? usdcVault : usd1Vault;
 
             // 3. Derive Position PDA: [b"position", owner, total_positions]
             // Note: totalPositions is BN, need little-endian 8 bytes
@@ -68,13 +80,9 @@ export function useTrading() {
                 PROGRAM_ID
             );
 
-            // 4. Get User ATA
-            // Fetch Mint from Vault Account to be sure
-            const vaultInfo = await connection.getParsedAccountInfo(usdcVault);
-            const vaultData = vaultInfo.value?.data as any; // ParsedAccountData
-            const mintAddress = new PublicKey(vaultData.parsed.info.mint);
-
-            const userUsdc = await getAssociatedTokenAddress(mintAddress, wallet.publicKey);
+            // 4. Get User ATA for selected collateral
+            const tokenMint = collateralType === "USDC" ? USDC_MINT : USD1_MINT;
+            const userTokenAccount = await getAssociatedTokenAddress(tokenMint, wallet.publicKey);
 
             // 5. Get Pyth Feed
             const priceFeed = getFeedId(pair);
@@ -91,12 +99,16 @@ export function useTrading() {
                 }
             });
 
-            // 6. Execute Instruction
+            // 6. Map collateral type to enum
+            const collateralEnum = collateralType === "USDC" ? { usdc: {} } : { usd1: {} };
+
+            // 7. Execute Instruction
             const tx = await program.methods
                 .openPosition(
                     mapPairToEnum(pair),
                     mapSideToEnum(side),
-                    new BN(marginAmount * 1_000_000), // Convert to 6 decimals (USDC)
+                    collateralEnum,
+                    new BN(marginAmount * 1_000_000), // Convert to 6 decimals
                     leverage,
                     isPrivate
                 )
@@ -104,8 +116,9 @@ export function useTrading() {
                     config: configPda,
                     position: positionPda,
                     owner: wallet.publicKey,
-                    userUsdc: userUsdc,
+                    userTokenAccount: userTokenAccount,
                     usdcVault: usdcVault,
+                    usd1Vault: usd1Vault,
                     tokenProgram: TOKEN_PROGRAM_ID,
                     priceFeed: priceFeed,
                     systemProgram: SystemProgram.programId,

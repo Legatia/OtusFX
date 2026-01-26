@@ -9,10 +9,18 @@ import idl from "../idl/bootstrap.json";
 
 const PROGRAM_ID = new PublicKey(idl.address);
 
+// Token mints (devnet)
+const USDC_MINT = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"); // ✅ Devnet USDC
+const USD1_MINT = new PublicKey("2yyHi6Q84oyjmAcMqP9UfuCmftzSjbFpXxTDRUZN9GFi"); // ✅ Devnet USD1 (test)
+const OTUS_MINT = new PublicKey("Bax4q8hoKoAFsN5GTCggMXkDUTyroLFmeveF9hm7rttV"); // ✅ Devnet OTUS Token
+
+export type StablecoinType = "USDC" | "USD1";
+
 export function useBootstrap() {
     const { connection } = useConnection();
     const wallet = useAnchorWallet();
-    const [totalRaised, setTotalRaised] = useState(0);
+    const [totalRaisedUsdc, setTotalRaisedUsdc] = useState(0);
+    const [totalRaisedUsd1, setTotalRaisedUsd1] = useState(0);
     const [userContribution, setUserContribution] = useState(0);
     const [credits, setCredits] = useState(0);
     const [tier, setTier] = useState<string | null>(null);
@@ -33,7 +41,8 @@ export function useBootstrap() {
                 PROGRAM_ID
             );
             const config = await (program.account as any).bootstrapConfig.fetch(configPda);
-            setTotalRaised(config.totalRaised.toNumber() / 1_000_000);
+            setTotalRaisedUsdc(config.totalDepositedUsdc.toNumber() / 1_000_000);
+            setTotalRaisedUsd1(config.totalDepositedUsd1.toNumber() / 1_000_000);
         } catch (e) {
             console.error("Error fetching bootstrap stats", e);
         }
@@ -43,28 +52,28 @@ export function useBootstrap() {
     const fetchUserStats = useCallback(async () => {
         if (!program || !wallet) return;
         try {
-            const [contributionPda] = PublicKey.findProgramAddressSync(
-                [Buffer.from("contribution"), wallet.publicKey.toBuffer()],
+            const [userDepositPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("user_deposit"), wallet.publicKey.toBuffer()],
                 PROGRAM_ID
             );
-            const contribution = await (program.account as any).contribution.fetch(contributionPda);
-            const amount = contribution.amount.toNumber() / 1_000_000;
-            setUserContribution(amount);
+            const userDeposit = await (program.account as any).userDeposit.fetch(userDepositPda);
+            const totalUsdValue = userDeposit.totalUsdValue.toNumber() / 1_000_000;
+            setUserContribution(totalUsdValue);
 
-            // Calculate Credits (Mock logic based on amount + time multiplier)
-            // In real app, this field would come from contract
-            const calculatedCredits = amount * 21 * 2;
-            setCredits(calculatedCredits);
+            // Credits from contract
+            const otusAllocation = userDeposit.otusAllocation.toNumber() / 1_000_000;
+            setCredits(otusAllocation);
 
-            // Determine Tier
-            if (calculatedCredits > 50000) setTier("Great Horned");
-            else if (calculatedCredits > 20000) setTier("Snowy");
-            else if (calculatedCredits > 10000) setTier("Barn");
-            else if (calculatedCredits > 0) setTier("Screech");
+            // Tier from contract (enum: None, Screech, Barn, Snowy, GreatHorned)
+            const tierEnum = userDeposit.scopsTier;
+            if (tierEnum.greatHorned) setTier("Great Horned");
+            else if (tierEnum.snowy) setTier("Snowy");
+            else if (tierEnum.barn) setTier("Barn");
+            else if (tierEnum.screech) setTier("Screech");
             else setTier(null);
 
         } catch (e) {
-            // User hasn't contributed yet
+            // User hasn't deposited yet
             setUserContribution(0);
             setCredits(0);
             setTier(null);
@@ -78,8 +87,8 @@ export function useBootstrap() {
         if (wallet) fetchUserStats();
     }, [fetchStats, fetchUserStats, wallet]);
 
-    // Public Deposit (Standard)
-    const depositPublic = async (amount: number) => {
+    // Initialize user deposit account (must be called before first deposit)
+    const initializeUserDeposit = async () => {
         if (!program || !wallet) throw new Error("Wallet not connected");
 
         const [configPda] = PublicKey.findProgramAddressSync(
@@ -87,31 +96,60 @@ export function useBootstrap() {
             PROGRAM_ID
         );
 
-        const [contributionPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from("contribution"), wallet.publicKey.toBuffer()],
+        const [userDepositPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("user_deposit"), wallet.publicKey.toBuffer()],
+            PROGRAM_ID
+        );
+
+        const tx = await program.methods
+            .initializeUserDeposit()
+            .accounts({
+                user: wallet.publicKey,
+                bootstrapConfig: configPda,
+                userDeposit: userDepositPda,
+                systemProgram: SystemProgram.programId,
+            })
+            .rpc();
+
+        await fetchUserStats();
+        return tx;
+    };
+
+    // Public Deposit (Standard) - supports both USDC and USD1
+    const depositPublic = async (amount: number, stablecoinType: StablecoinType = "USDC") => {
+        if (!program || !wallet) throw new Error("Wallet not connected");
+
+        const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("bootstrap_config")],
+            PROGRAM_ID
+        );
+
+        const [userDepositPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("user_deposit"), wallet.publicKey.toBuffer()],
             PROGRAM_ID
         );
 
         const config = await (program.account as any).bootstrapConfig.fetch(configPda);
         const usdcVault = config.usdcVault as PublicKey;
+        const usd1Vault = config.usd1Vault as PublicKey;
 
-        // Get Mint from Vault to be safe (or hardcode USDC)
-        const vaultInfo = await connection.getParsedAccountInfo(usdcVault);
-        const vaultData = vaultInfo.value?.data as any;
-        const mintAddress = new PublicKey(vaultData.parsed.info.mint);
+        // Get user's token account
+        const tokenMint = stablecoinType === "USDC" ? USDC_MINT : USD1_MINT;
+        const userTokenAccount = await getAssociatedTokenAddress(tokenMint, wallet.publicKey);
 
-        const userUsdc = await getAssociatedTokenAddress(mintAddress, wallet.publicKey);
+        // Map stablecoin type to enum
+        const stablecoinEnum = stablecoinType === "USDC" ? { usdc: {} } : { usd1: {} };
 
         const tx = await program.methods
-            .deposit(new BN(amount * 1_000_000))
+            .depositUsdc(stablecoinEnum, new BN(amount * 1_000_000))
             .accounts({
-                config: configPda,
-                contribution: contributionPda,
-                depositor: wallet.publicKey,
-                userUsdc: userUsdc,
-                usdcVault: usdcVault,
+                user: wallet.publicKey,
+                bootstrapConfig: configPda,
+                userDeposit: userDepositPda,
+                usdcVault,
+                usd1Vault,
+                userTokenAccount,
                 tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: SystemProgram.programId,
             })
             .rpc();
 
@@ -156,14 +194,85 @@ export function useBootstrap() {
         return tx;
     };
 
+    // Add mint NFT and claim OTUS methods
+    const mintScopsNFT = async () => {
+        if (!program || !wallet) throw new Error("Wallet not connected");
+
+        const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("bootstrap_config")],
+            PROGRAM_ID
+        );
+
+        const [userDepositPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("user_deposit"), wallet.publicKey.toBuffer()],
+            PROGRAM_ID
+        );
+
+        // TODO: Add NFT mint accounts when Metaplex integration is ready
+        const tx = await program.methods
+            .mintScops()
+            .accounts({
+                user: wallet.publicKey,
+                bootstrapConfig: configPda,
+                userDeposit: userDepositPda,
+                // ... additional NFT accounts
+            })
+            .rpc();
+
+        await fetchUserStats();
+        return tx;
+    };
+
+    const claimOTUS = async () => {
+        if (!program || !wallet) throw new Error("Wallet not connected");
+
+        const [configPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("bootstrap_config")],
+            PROGRAM_ID
+        );
+
+        const [userDepositPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("user_deposit"), wallet.publicKey.toBuffer()],
+            PROGRAM_ID
+        );
+
+        const config = await (program.account as any).bootstrapConfig.fetch(configPda);
+        const otusVault = config.otusVault as PublicKey;
+
+        const userOtusAccount = await getAssociatedTokenAddress(
+            OTUS_MINT,
+            wallet.publicKey
+        );
+
+        const tx = await program.methods
+            .claimOtus()
+            .accounts({
+                user: wallet.publicKey,
+                bootstrapConfig: configPda,
+                userDeposit: userDepositPda,
+                otusVault,
+                userOtusAccount,
+                tokenProgram: TOKEN_PROGRAM_ID,
+            })
+            .rpc();
+
+        await fetchUserStats();
+        return tx;
+    };
+
     return {
-        totalRaised,
+        totalRaised: totalRaisedUsdc + totalRaisedUsd1,
+        totalRaisedUsdc,
+        totalRaisedUsd1,
         userContribution,
         credits,
         tier,
         loading,
+        initializeUserDeposit,
         depositPublic,
         depositPrivate,
+        mintScopsNFT,
+        claimOTUS,
         refresh: () => { fetchStats(); fetchUserStats(); }
     };
 }

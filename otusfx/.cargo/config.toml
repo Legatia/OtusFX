@@ -1,0 +1,5 @@
+# Enable proc_macro2 semver-exempt features for anchor-syn IDL generation
+# This allows Span::source_file() method which is required by anchor-syn 0.30.1
+
+[build]
+rustflags = ["--cfg", "procmacro2_semver_exempt"]

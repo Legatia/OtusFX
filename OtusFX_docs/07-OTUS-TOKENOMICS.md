@@ -100,18 +100,20 @@ Liquidity ████░░░░░░░░░░░░░░░░░░░�
 
 | Allocation | % | Purpose |
 |------------|---|---------|
-| **OTUS Backing** | 60% | Buyback or treasury accumulation |
+| **OTUS Backing** | 55% | Buyback or treasury accumulation |
 | **Insurance Fund** | 20% | Risk buffer for black swan events |
 | **Team Operations** | 15% | Paid in OTUS (aligned incentives) |
 | **Foundation** | 5% | Grants, ecosystem development |
+| **Impact Fund** | 5% | Weekend charitable giving cashback |
 
 **Trading Fee Revenue** (from perpetual trading):
 
 | Allocation | % | Purpose |
 |------------|---|---------|
 | **OTUS Stakers** | 50% | Direct fee cashback in USD1 |
-| **OTUS Backing** | 30% | Additional treasury accumulation |
+| **OTUS Backing** | 20% | Additional treasury accumulation |
 | **Insurance Fund** | 15% | Protocol safety net |
+| **Impact Fund** | 10% | Weekend charitable giving cashback |
 | **Team Operations** | 5% | Platform maintenance |
 
 ```

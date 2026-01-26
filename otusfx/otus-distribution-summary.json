@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-01-25T22:25:15.871Z",
+  "network": "devnet",
+  "status": "All tokens held in authority wallet (awaiting program vault initialization)",
+  "otusMint": "Bax4q8hoKoAFsN5GTCggMXkDUTyroLFmeveF9hm7rttV",
+  "authorityWallet": "HBvV7YqSRSPW4YEBsDvpvF2PrUWFubqVbTNYafkddTsy",
+  "authorityTokenAccount": "5tA9pz3vHmxDaTHLhmxhd4CVsHnsnYFRGR3k9mVcSyCC",
+  "totalSupply": 1000000000,
+  "allocations": {
+    "bootstrap_rewards": {
+      "percentage": 30,
+      "amount": 300000000,
+      "expectedVaultPDA": "4ovbHjhBCenQTywyYKRD2uJ2dUKnnwtvPdqg2NYpAT5S"
+    },
+    "lending_interest": {
+      "percentage": 30,
+      "amount": 300000000,
+      "expectedVaultPDA": "5CW839v219gtB9dhcSagkV883sbuLkMEAdrSb8FHt5MA"
+    },
+    "trading_incentives": {
+      "percentage": 15,
+      "amount": 150000000,
+      "expectedVaultPDA": "FCBF99W92CfTVsUDTmrZ3hDgewzrgUQSDctjUL78Lm5V"
+    },
+    "team_reserve": {
+      "percentage": 15,
+      "amount": 150000000
+    },
+    "initial_liquidity": {
+      "percentage": 5,
+      "amount": 50000000
+    },
+    "buffer": {
+      "percentage": 5,
+      "amount": 50000000
+    }
+  },
+  "programIds": {
+    "bootstrap": "71eGRTPxxUV6zE9eKnCCXu5SUbaUvd534QqbFv28C7sH",
+    "lending": "LendingPoo111111111111111111111111111111111",
+    "trading": "97L7s86Gz4CLzgkvfaDMqGR1mqj9MqEcQTYj2GWe4HTk"
+  }
+}

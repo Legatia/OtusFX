@@ -30,33 +30,99 @@ const utilizationPoints = [
 ];
 
 export default function LendPage() {
-    const { poolStats, walletBalance, loading, deposit, withdraw } = useLendingPool();
+    const {
+        poolStats,
+        lenderStats,
+        walletBalance,
+        loading,
+        initializeLenderPosition,
+        depositLiquidity,
+        withdrawLiquidity,
+        depositLiquidityPrivate,
+        withdrawLiquidityPrivate,
+        claimOtusRewards
+    } = useLendingPool();
     const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
     const [amount, setAmount] = useState("");
+    const [stablecoinType, setStablecoinType] = useState<"USDC" | "USD1">("USDC");
+    const [isPrivate, setIsPrivate] = useState(true); // Default to private mode
     const [submitting, setSubmitting] = useState(false);
+    const [needsInit, setNeedsInit] = useState(false);
     const { showComingSoon } = useComingSoon();
 
     const handleMaxClick = () => {
         if (activeTab === "deposit") {
-            setAmount(walletBalance.toString());
+            setAmount((stablecoinType === "USDC" ? walletBalance.usdc : walletBalance.usd1).toString());
         } else {
-            setAmount(poolStats.userShares.toString());
+            setAmount((stablecoinType === "USDC" ? lenderStats.usdcDeposited : lenderStats.usd1Deposited).toString());
+        }
+    };
+
+    const handleInit = async () => {
+        setSubmitting(true);
+        try {
+            await initializeLenderPosition();
+            setNeedsInit(false);
+            alert("✅ Lender position initialized!");
+        } catch (e: any) {
+            console.error("Initialization failed:", e);
+            alert(`Initialization failed: ${e.message}`);
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleSubmit = async () => {
         if (!amount || Number(amount) <= 0) return;
+
+        // Check if user needs to initialize first
+        if (lenderStats.totalUsdValue === 0 && activeTab === "deposit") {
+            setNeedsInit(true);
+            alert("⚠️ Please initialize your lender position first (one-time setup)");
+            return;
+        }
+
         setSubmitting(true);
         try {
             if (activeTab === "deposit") {
-                await deposit(Number(amount));
+                if (isPrivate) {
+                    await depositLiquidityPrivate(Number(amount), stablecoinType);
+                    alert(`🔒 Privately deposited ${amount} ${stablecoinType}! Your deposit source is hidden via Privacy Cash.`);
+                } else {
+                    await depositLiquidity(Number(amount), stablecoinType);
+                    alert(`✅ Deposited ${amount} ${stablecoinType}!`);
+                }
             } else {
-                await withdraw(Number(amount));
+                if (isPrivate) {
+                    await withdrawLiquidityPrivate(Number(amount), stablecoinType);
+                    alert(`🔒 Privately withdrew ${amount} ${stablecoinType} + OTUS interest! Your destination is hidden.`);
+                } else {
+                    await withdrawLiquidity(Number(amount), stablecoinType);
+                    alert(`✅ Withdrew ${amount} ${stablecoinType} + OTUS interest!`);
+                }
             }
             setAmount("");
-        } catch (e) {
+        } catch (e: any) {
             console.error("Transaction failed:", e);
-            alert("Transaction failed. Check console for details.");
+            alert(`Transaction failed: ${e.message}`);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleClaimOtus = async () => {
+        if (lenderStats.otusInterestEarned === 0) {
+            alert("No OTUS interest to claim");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            await claimOtusRewards();
+            alert(`✅ Claimed ${lenderStats.otusInterestEarned.toFixed(2)} OTUS!`);
+        } catch (e: any) {
+            console.error("Claim failed:", e);
+            alert(`Claim failed: ${e.message}`);
         } finally {
             setSubmitting(false);
         }
@@ -123,7 +189,9 @@ export default function LendPage() {
                     <div className="text-2xl font-bold text-primary">
                         ${poolStats.totalDeposits.toLocaleString()}
                     </div>
-                    <div className="text-xs text-secondary mt-1">USDC</div>
+                    <div className="text-xs text-secondary mt-1">
+                        ${poolStats.totalDepositsUsdc.toLocaleString()} USDC + ${poolStats.totalDepositsUsd1.toLocaleString()} USD1
+                    </div>
                 </div>
 
                 {/* Utilization Rate */}
@@ -133,7 +201,7 @@ export default function LendPage() {
                         Utilization
                     </div>
                     <div className="text-2xl font-bold text-primary">
-                        {poolStats.utilizationRate}%
+                        {poolStats.utilizationRate.toFixed(1)}%
                     </div>
                     <div className="w-full h-2 bg-background rounded-full mt-2 overflow-hidden">
                         <div
@@ -150,9 +218,9 @@ export default function LendPage() {
                         Lender APY
                     </div>
                     <div className="text-2xl font-bold text-emerald-400">
-                        {poolStats.lenderAPY}%
+                        {poolStats.lenderAPY.toFixed(2)}%
                     </div>
-                    <div className="text-xs text-secondary mt-1">Variable rate</div>
+                    <div className="text-xs text-secondary mt-1">Paid in OTUS</div>
                 </div>
 
                 {/* Your Deposit */}
@@ -162,10 +230,10 @@ export default function LendPage() {
                         Your Deposit
                     </div>
                     <div className="text-2xl font-bold text-primary">
-                        ${poolStats.userDeposit.toLocaleString()}
+                        ${lenderStats.totalUsdValue.toLocaleString()}
                     </div>
                     <div className="text-xs text-emerald-400 mt-1">
-                        +${poolStats.userEarnings.toFixed(2)} earned
+                        {lenderStats.otusInterestEarned.toFixed(2)} OTUS earned
                     </div>
                 </div>
             </motion.div>
@@ -205,14 +273,76 @@ export default function LendPage() {
 
                     {/* Amount Input */}
                     <div className="space-y-4">
+                        {/* Privacy Toggle */}
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                    <Lock className="w-5 h-5 text-purple-400" />
+                                </div>
+                                <div>
+                                    <div className="font-medium text-primary">Privacy Mode</div>
+                                    <div className="text-xs text-secondary">
+                                        {isPrivate
+                                            ? "🔒 Deposit source hidden via Privacy Cash"
+                                            : "⚠️ Direct deposit (wallet linkage visible)"
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsPrivate(!isPrivate)}
+                                className={`relative w-14 h-7 rounded-full transition-colors ${
+                                    isPrivate ? "bg-purple-500" : "bg-gray-600"
+                                }`}
+                            >
+                                <div className={`absolute w-6 h-6 bg-white rounded-full top-0.5 transition-transform ${
+                                    isPrivate ? "translate-x-7" : "translate-x-0.5"
+                                }`} />
+                            </button>
+                        </div>
+
+                        {/* Stablecoin Selector */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setStablecoinType("USDC")}
+                                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                                    stablecoinType === "USDC"
+                                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                        : "bg-surface text-secondary hover:text-primary border border-border"
+                                }`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-blue-400">$</span>
+                                    </div>
+                                    USDC
+                                </div>
+                            </button>
+                            <button
+                                onClick={() => setStablecoinType("USD1")}
+                                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                                    stablecoinType === "USD1"
+                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        : "bg-surface text-secondary hover:text-primary border border-border"
+                                }`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-emerald-400">$</span>
+                                    </div>
+                                    USD1
+                                </div>
+                            </button>
+                        </div>
+
                         <div className="p-4 rounded-xl bg-background border border-border">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-secondary text-sm">Amount</span>
                                 <span className="text-secondary text-sm">
-                                    Balance: ${activeTab === "deposit"
-                                        ? walletBalance.toLocaleString()
-                                        : poolStats.userDeposit.toLocaleString()
-                                    }
+                                    Balance: {activeTab === "deposit"
+                                        ? (stablecoinType === "USDC" ? walletBalance.usdc : walletBalance.usd1).toLocaleString()
+                                        : (stablecoinType === "USDC" ? lenderStats.usdcDeposited : lenderStats.usd1Deposited).toLocaleString()
+                                    } {stablecoinType}
                                 </span>
                             </div>
                             <div className="flex items-center gap-4">
@@ -230,11 +360,15 @@ export default function LendPage() {
                                     >
                                         MAX
                                     </button>
-                                    <div className="px-3 py-2 rounded-lg bg-surface border border-border flex items-center gap-2">
-                                        <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                            <span className="text-xs font-bold text-blue-400">$</span>
+                                    <div className={`px-3 py-2 rounded-lg border flex items-center gap-2 ${
+                                        stablecoinType === "USDC" ? "bg-blue-500/10 border-blue-500/20" : "bg-emerald-500/10 border-emerald-500/20"
+                                    }`}>
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                                            stablecoinType === "USDC" ? "bg-blue-500/10" : "bg-emerald-500/10"
+                                        }`}>
+                                            <span className={`text-xs font-bold ${stablecoinType === "USDC" ? "text-blue-400" : "text-emerald-400"}`}>$</span>
                                         </div>
-                                        <span className="font-medium text-primary">USDC</span>
+                                        <span className="font-medium text-primary">{stablecoinType}</span>
                                     </div>
                                 </div>
                             </div>
@@ -243,33 +377,95 @@ export default function LendPage() {
                         {/* Preview */}
                         <div className="p-4 rounded-xl bg-background border border-border space-y-3">
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-secondary">Current APY</span>
-                                <span className="text-emerald-400 font-medium">{poolStats.lenderAPY}%</span>
+                                <span className="text-secondary">Current APY (in OTUS)</span>
+                                <span className="text-emerald-400 font-medium">{poolStats.lenderAPY.toFixed(2)}%</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-secondary">Estimated yearly earnings</span>
+                                <span className="text-secondary">OTUS Price</span>
+                                <span className="text-primary font-medium">${poolStats.otusPrice.toFixed(4)}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-secondary">Estimated yearly OTUS</span>
                                 <span className="text-primary font-medium">
-                                    ${((parseFloat(amount) || 0) * poolStats.lenderAPY / 100).toFixed(2)}
+                                    {(((parseFloat(amount) || 0) * poolStats.lenderAPY / 100) / poolStats.otusPrice).toFixed(2)} OTUS
                                 </span>
                             </div>
                             {activeTab === "withdraw" && (
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-secondary">Withdrawal fee</span>
-                                    <span className="text-primary font-medium">0%</span>
+                                    <span className="text-secondary">OTUS interest to claim</span>
+                                    <span className="text-emerald-400 font-medium">{lenderStats.otusInterestEarned.toFixed(2)} OTUS</span>
                                 </div>
                             )}
                         </div>
 
-                        {/* Action Button */}
-                        <button
-                            onClick={() => showComingSoon("Lending Pool")}
-                            className={`w-full py-4 rounded-xl font-semibold transition-all ${activeTab === "deposit"
-                                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                                : "bg-accent hover:bg-accent-hover text-white"
-                                }`}
-                        >
-                            {activeTab === "deposit" ? "Deposit USDC" : "Withdraw USDC"}
-                        </button>
+                        {/* Privacy Benefits Info */}
+                        {isPrivate && (
+                            <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20">
+                                <div className="flex items-start gap-2">
+                                    <Shield className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
+                                    <div className="text-xs text-secondary">
+                                        <span className="text-purple-400 font-medium">Privacy Protection Active:</span> Your deposit source, amount, and balance are encrypted via Privacy Cash. On-chain observers cannot link this transaction to your wallet.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        {needsInit ? (
+                            <button
+                                onClick={handleInit}
+                                disabled={submitting}
+                                className="w-full py-4 rounded-xl font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {submitting ? "Initializing..." : "Initialize Lender Position (One-time)"}
+                            </button>
+                        ) : (
+                            <div className="space-y-2">
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={submitting || !amount || Number(amount) <= 0}
+                                    className={`w-full py-4 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        isPrivate
+                                            ? "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                                            : activeTab === "deposit"
+                                                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                                                : "bg-accent hover:bg-accent-hover text-white"
+                                    }`}
+                                >
+                                    {submitting ? (
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            {activeTab === "deposit" ? "Depositing..." : "Withdrawing..."}
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center gap-2">
+                                            {isPrivate && <Lock className="w-4 h-4" />}
+                                            {activeTab === "deposit"
+                                                ? `${isPrivate ? 'Private ' : ''}Deposit ${stablecoinType}`
+                                                : `${isPrivate ? 'Private ' : ''}Withdraw ${stablecoinType}`
+                                            }
+                                        </div>
+                                    )}
+                                </button>
+
+                                {lenderStats.otusInterestEarned > 0 && (
+                                    <button
+                                        onClick={handleClaimOtus}
+                                        disabled={submitting}
+                                        className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {submitting ? (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Claiming...
+                                            </div>
+                                        ) : (
+                                            `Claim ${lenderStats.otusInterestEarned.toFixed(2)} OTUS`
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </motion.div>
 

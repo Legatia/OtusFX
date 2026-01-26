@@ -1,0 +1,13 @@
+target/
+node_modules/
+.anchor/
+.git/
+.DS_Store
+*.log
+app/
+migrations/
+tests/
+*.md
+.gitignore
+Cargo.lock
+**/Cargo.lock

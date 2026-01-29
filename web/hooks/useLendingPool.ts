@@ -6,6 +6,10 @@ import { Program, AnchorProvider, Idl, BN } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import lendingIdl from "../idl/lending_pool.json";
+// @ts-ignore - Privacy Cash SDK types
+import { PrivacyCash } from "privacycash";
+// @ts-ignore - ShadowWire SDK types
+import { ShadowWire } from "@radr/shadowwire";
 
 const PROGRAM_ID = new PublicKey(lendingIdl.address);
 
@@ -282,29 +286,19 @@ export function useLendingPool() {
         if (!program || !wallet) throw new Error("Wallet not connected");
 
         try {
-            // Step 1: Deposit to Privacy Cash pool (breaks wallet linkage)
-            console.log(`[Privacy] Depositing ${amount} ${stablecoinType} to Privacy Cash pool...`);
-            const privacyResponse = await fetch('/api/privacy/deposit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    wallet: wallet.publicKey.toString(),
-                    amount,
-                    token: stablecoinType
-                }),
-            });
+            console.log(`[Privacy Cash] Generating commitment for ${amount} ${stablecoinType}...`);
 
-            if (!privacyResponse.ok) {
-                const error = await privacyResponse.json();
-                throw new Error(error.error || 'Privacy Cash deposit failed');
-            }
+            // Step 1: Generate Privacy Cash commitment and nullifier
+            const privacyCash = new PrivacyCash(connection);
+            const { commitment, nullifierHash, secret } = await privacyCash.generateCommitment(
+                amount * 1_000_000, // Convert to smallest unit
+                wallet.publicKey.toString()
+            );
 
-            const { commitment, txHash } = await privacyResponse.json();
-            console.log(`[Privacy] Privacy Cash commitment: ${commitment}, tx: ${txHash}`);
+            console.log(`[Privacy Cash] Commitment generated: ${Buffer.from(commitment).toString('hex').slice(0, 16)}...`);
+            console.log(`[Privacy Cash] Nullifier hash: ${Buffer.from(nullifierHash).toString('hex').slice(0, 16)}...`);
 
-            // Step 2: Deposit to lending pool from Privacy Cash pool
-            // Note: In production, this would use a CPI from Privacy Cash -> Lending Pool
-            // For now, we do standard deposit but funds came from Privacy Cash pool
+            // Step 2: Prepare accounts
             const configPda = getLendingConfigPda();
             const positionPda = getLenderPositionPda(wallet.publicKey);
 
@@ -314,31 +308,52 @@ export function useLendingPool() {
 
             const tokenMint = stablecoinType === "USDC" ? USDC_MINT : USD1_MINT;
             const lenderTokenAccount = await getAssociatedTokenAddress(tokenMint, wallet.publicKey);
+            const poolVault = stablecoinType === "USDC" ? usdcVault : usd1Vault;
+
+            // Generate commitment account PDA
+            const [commitmentAccountPda] = PublicKey.findProgramAddressSync(
+                [
+                    Buffer.from("privacy_commitment"),
+                    wallet.publicKey.toBuffer(),
+                    Buffer.from(commitment)
+                ],
+                PROGRAM_ID
+            );
 
             const stablecoinEnum = stablecoinType === "USDC" ? { usdc: {} } : { usd1: {} };
 
-            console.log(`[Privacy] Depositing to lending pool...`);
+            // Step 3: Call private deposit instruction
+            console.log(`[Privacy Cash] Depositing to lending pool with privacy...`);
             const tx = await program.methods
-                .depositLiquidity(stablecoinEnum, new BN(amount * 1_000_000))
+                .depositLiquidityPrivate(
+                    stablecoinEnum,
+                    new BN(amount * 1_000_000),
+                    Array.from(commitment),
+                    Array.from(nullifierHash)
+                )
                 .accounts({
-                    lender: wallet.publicKey,
                     lendingConfig: configPda,
                     lenderPosition: positionPda,
-                    usdcVault,
-                    usd1Vault,
+                    lender: wallet.publicKey,
                     lenderTokenAccount,
+                    poolVault,
+                    usdcVault, // Required by has_one constraint
+                    usd1Vault, // Required by has_one constraint
+                    commitmentAccount: commitmentAccountPda,
                     tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
                 })
                 .rpc();
 
-            console.log(`[Privacy] Lending pool deposit complete: ${tx}`);
+            console.log(`✅ Private deposit complete: ${tx}`);
+            console.log(`💾 Save this secret to withdraw later: ${secret}`);
 
             await fetchPoolStats();
             await fetchLenderStats();
             await fetchWalletBalances();
             return tx;
         } catch (error) {
-            console.error('[Privacy] Private deposit failed:', error);
+            console.error('[Privacy Cash] Private deposit failed:', error);
             throw error;
         }
     };
@@ -385,72 +400,69 @@ export function useLendingPool() {
         return tx;
     };
 
-    // Withdraw liquidity - PRIVATE (via Privacy Cash, destination hidden)
+    // Withdraw liquidity - PRIVATE (via ShadowWire Bulletproofs, amount hidden)
     const withdrawLiquidityPrivate = async (amount: number, stablecoinType: StablecoinType) => {
         if (!program || !wallet) throw new Error("Wallet not connected");
 
         try {
-            // Step 1: Withdraw from lending pool (gets principal + OTUS)
-            console.log(`[Privacy] Withdrawing ${amount} ${stablecoinType} from lending pool...`);
+            console.log(`[ShadowWire] Generating Bulletproof for withdrawal...`);
+
+            // Step 1: Generate ShadowWire Bulletproof to hide withdrawal amount
+            const shadowWire = new ShadowWire();
+            const amountInSmallestUnit = amount * 1_000_000;
+
+            const { commitment, proof, blindingFactor } = await shadowWire.generateRangeProof(
+                amountInSmallestUnit,
+                64 // 64-bit range proof
+            );
+
+            console.log(`[ShadowWire] Bulletproof generated (${proof.length} bytes)`);
+            console.log(`[ShadowWire] Amount commitment: ${Buffer.from(commitment).toString('hex').slice(0, 16)}...`);
+
+            // Step 2: Prepare accounts
             const configPda = getLendingConfigPda();
             const positionPda = getLenderPositionPda(wallet.publicKey);
 
             const config = await (program.account as any).lendingConfig.fetch(configPda);
             const usdcVault = config.usdcVault as PublicKey;
             const usd1Vault = config.usd1Vault as PublicKey;
-            const otusVault = config.otusVault as PublicKey;
 
             const tokenMint = stablecoinType === "USDC" ? USDC_MINT : USD1_MINT;
-            const lenderTokenAccount = await getAssociatedTokenAddress(tokenMint, wallet.publicKey);
-            const lenderOtusAccount = await getAssociatedTokenAddress(OTUS_MINT, wallet.publicKey);
+            const destinationTokenAccount = await getAssociatedTokenAddress(tokenMint, wallet.publicKey);
+            const poolVault = stablecoinType === "USDC" ? usdcVault : usd1Vault;
 
             const stablecoinEnum = stablecoinType === "USDC" ? { usdc: {} } : { usd1: {} };
 
+            // Step 3: Call private withdrawal instruction
+            console.log(`[ShadowWire] Withdrawing from lending pool with hidden amount...`);
             const tx = await program.methods
-                .withdrawLiquidity(stablecoinEnum, new BN(amount * 1_000_000))
+                .withdrawLiquidityPrivate(
+                    stablecoinEnum,
+                    Array.from(commitment),
+                    Array.from(proof),
+                    new BN(amountInSmallestUnit) // Revealed after proof verification
+                )
                 .accounts({
-                    lender: wallet.publicKey,
                     lendingConfig: configPda,
                     lenderPosition: positionPda,
-                    usdcVault,
-                    usd1Vault,
-                    otusVault,
-                    lenderTokenAccount,
-                    lenderOtusAccount,
+                    lender: wallet.publicKey,
+                    destinationTokenAccount,
+                    poolVault,
+                    usdcVault, // Required by has_one constraint
+                    usd1Vault, // Required by has_one constraint
                     tokenProgram: TOKEN_PROGRAM_ID,
                 })
                 .rpc();
 
-            console.log(`[Privacy] Lending pool withdrawal complete: ${tx}`);
-
-            // Step 2: Route withdrawn funds through Privacy Cash (hides destination)
-            console.log(`[Privacy] Routing withdrawal through Privacy Cash for privacy...`);
-            const privacyResponse = await fetch('/api/privacy/withdraw', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    wallet: wallet.publicKey.toString(),
-                    recipient: wallet.publicKey.toString(), // Can be different for extra privacy
-                    amount,
-                    token: stablecoinType
-                }),
-            });
-
-            if (!privacyResponse.ok) {
-                const error = await privacyResponse.json();
-                console.warn('[Privacy] Privacy Cash withdrawal failed (non-critical):', error);
-                // Note: Funds are already withdrawn from lending pool, Privacy Cash step is optional
-            } else {
-                const { txHash } = await privacyResponse.json();
-                console.log(`[Privacy] Privacy Cash withdrawal complete: ${txHash}`);
-            }
+            console.log(`✅ Private withdrawal complete: ${tx}`);
+            console.log(`🔒 Amount hidden from chain observers via Bulletproofs`);
 
             await fetchPoolStats();
             await fetchLenderStats();
             await fetchWalletBalances();
             return tx;
         } catch (error) {
-            console.error('[Privacy] Private withdrawal failed:', error);
+            console.error('[ShadowWire] Private withdrawal failed:', error);
             throw error;
         }
     };

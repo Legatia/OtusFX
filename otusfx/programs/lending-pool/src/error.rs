@@ -43,4 +43,19 @@ pub enum LendingError {
 
     #[msg("Invalid stablecoin type")]
     InvalidStablecoin,
+
+    #[msg("Invalid commitment - must be non-zero")]
+    InvalidCommitment,
+
+    #[msg("Invalid zero-knowledge proof")]
+    InvalidProof,
+
+    #[msg("Zero-knowledge proof verification failed")]
+    ProofVerificationFailed,
+
+    #[msg("Minimum deposit amount not met")]
+    MinimumDepositNotMet,
+
+    #[msg("Invalid amount - must be greater than zero")]
+    InvalidAmount,
 }

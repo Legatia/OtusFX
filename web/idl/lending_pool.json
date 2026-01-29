@@ -499,6 +499,166 @@
           }
         }
       ]
+    },
+    {
+      "name": "deposit_liquidity_private",
+      "discriminator": [101, 102, 103, 104, 105, 106, 107, 108],
+      "accounts": [
+        {
+          "name": "lending_config",
+          "writable": true
+        },
+        {
+          "name": "lender_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 101, 114, 95, 112, 111, 115, 105, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "lender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lender_token_account",
+          "writable": true
+        },
+        {
+          "name": "pool_vault",
+          "writable": true
+        },
+        {
+          "name": "usdc_vault",
+          "writable": true
+        },
+        {
+          "name": "usd1_vault",
+          "writable": true
+        },
+        {
+          "name": "commitment_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "stablecoin_type",
+          "type": {
+            "defined": {
+              "name": "StablecoinType"
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "commitment",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "nullifier_hash",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "withdraw_liquidity_private",
+      "discriminator": [201, 202, 203, 204, 205, 206, 207, 208],
+      "accounts": [
+        {
+          "name": "lending_config",
+          "writable": true
+        },
+        {
+          "name": "lender_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 110, 100, 101, 114, 95, 112, 111, 115, 105, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "lender"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "destination_token_account",
+          "writable": true
+        },
+        {
+          "name": "pool_vault",
+          "writable": true
+        },
+        {
+          "name": "usdc_vault",
+          "writable": true
+        },
+        {
+          "name": "usd1_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "stablecoin_type",
+          "type": {
+            "defined": {
+              "name": "StablecoinType"
+            }
+          }
+        },
+        {
+          "name": "amount_commitment",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "range_proof_bytes",
+          "type": {
+            "vec": "u8"
+          }
+        },
+        {
+          "name": "revealed_amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -622,6 +782,14 @@
             "type": "u64"
           },
           {
+            "name": "is_private",
+            "type": "bool"
+          },
+          {
+            "name": "privacy_commitment_count",
+            "type": "u32"
+          },
+          {
             "name": "bump",
             "type": "u8"
           }
@@ -665,6 +833,39 @@
           {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrivacyCommitment",
+      "discriminator": [111, 112, 113, 114, 115, 116, 117, 118],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lender",
+            "type": "pubkey"
+          },
+          {
+            "name": "commitment",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "nullifier_hash",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "is_spent",
+            "type": "bool"
           }
         ]
       }

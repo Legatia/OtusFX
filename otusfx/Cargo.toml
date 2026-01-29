@@ -23,6 +23,12 @@ spl-pod = "=0.2.2"
 spl-program-error = "=0.4.1"
 mpl-token-metadata = "3.2.3"
 
+# Privacy integrations
+arcium-anchor = "0.6.5"
+bulletproofs = "4.0"
+curve25519-dalek = "4"
+merlin = "3"
+
 [profile.release]
 overflow-checks = true
 lto = "fat"

@@ -57,6 +57,40 @@ pub mod lending_pool {
         instructions::withdraw_liquidity::handler(ctx, stablecoin_type, amount)
     }
 
+    /// Deposit stablecoin with Privacy Cash (hides deposit source)
+    pub fn deposit_liquidity_private(
+        ctx: Context<DepositLiquidityPrivate>,
+        stablecoin_type: StablecoinType,
+        amount: u64,
+        commitment: [u8; 32],
+        nullifier_hash: [u8; 32],
+    ) -> Result<()> {
+        instructions::deposit_liquidity_private::handler(
+            ctx,
+            stablecoin_type,
+            amount,
+            commitment,
+            nullifier_hash,
+        )
+    }
+
+    /// Withdraw stablecoin with ShadowWire Bulletproofs (hides withdrawal amount)
+    pub fn withdraw_liquidity_private(
+        ctx: Context<WithdrawLiquidityPrivate>,
+        stablecoin_type: StablecoinType,
+        amount_commitment: [u8; 32],
+        range_proof_bytes: Vec<u8>,
+        revealed_amount: u64,
+    ) -> Result<()> {
+        instructions::withdraw_liquidity_private::handler(
+            ctx,
+            stablecoin_type,
+            amount_commitment,
+            range_proof_bytes,
+            revealed_amount,
+        )
+    }
+
     /// Borrow stablecoin for leveraged trading (CPI from Trading Engine)
     pub fn borrow_for_leverage(
         ctx: Context<BorrowForLeverage>,

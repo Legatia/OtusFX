@@ -33,3 +33,8 @@ spl-token-metadata-interface = { workspace = true }
 spl-token-group-interface = { workspace = true }
 spl-pod = { workspace = true }
 spl-program-error = { workspace = true }
+
+# Privacy integrations
+bulletproofs = { workspace = true }
+curve25519-dalek = { workspace = true }
+merlin = { workspace = true }

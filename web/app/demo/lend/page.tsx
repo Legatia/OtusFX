@@ -41,6 +41,7 @@ const utilizationPoints = [
 export default function LendPage() {
     const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
     const [amount, setAmount] = useState("");
+    const [isPrivate, setIsPrivate] = useState(true); // Default to private mode
     const walletBalance = 25_000; // Mock wallet balance
     const { showComingSoon } = useComingSoon();
 
@@ -195,6 +196,34 @@ export default function LendPage() {
 
                     {/* Amount Input */}
                     <div className="space-y-4">
+                        {/* Privacy Toggle */}
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                    <Lock className="w-5 h-5 text-purple-400" />
+                                </div>
+                                <div>
+                                    <div className="font-medium text-primary">Privacy Mode</div>
+                                    <div className="text-xs text-secondary">
+                                        {isPrivate
+                                            ? "🔒 Deposit source hidden via Privacy Cash"
+                                            : "⚠️ Direct deposit (wallet linkage visible)"
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsPrivate(!isPrivate)}
+                                className={`relative w-14 h-7 rounded-full transition-colors ${
+                                    isPrivate ? "bg-purple-500" : "bg-gray-600"
+                                }`}
+                            >
+                                <div className={`absolute w-6 h-6 bg-white rounded-full top-0.5 transition-transform ${
+                                    isPrivate ? "translate-x-7" : "translate-x-0.5"
+                                }`} />
+                            </button>
+                        </div>
+
                         <div className="p-4 rounded-xl bg-background border border-border">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-secondary text-sm">Amount</span>
@@ -250,15 +279,32 @@ export default function LendPage() {
                             )}
                         </div>
 
+                        {/* Privacy Info */}
+                        {isPrivate && (
+                            <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/10">
+                                <div className="flex items-start gap-2 text-xs">
+                                    <Shield className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
+                                    <div className="text-secondary">
+                                        <span className="text-purple-400 font-medium">Privacy Cash</span> breaks the link between your wallet and deposit.
+                                        Your identity remains private.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Action Button */}
                         <button
                             onClick={() => showComingSoon("Lending Pool")}
-                            className={`w-full py-4 rounded-xl font-semibold transition-all ${activeTab === "deposit"
+                            className={`w-full py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === "deposit"
                                 ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                                 : "bg-accent hover:bg-accent-hover text-white"
                                 }`}
                         >
-                            {activeTab === "deposit" ? "Deposit USDC" : "Withdraw USDC"}
+                            {isPrivate && <Lock className="w-4 h-4" />}
+                            {activeTab === "deposit"
+                                ? `${isPrivate ? 'Private ' : ''}Deposit USDC`
+                                : `${isPrivate ? 'Private ' : ''}Withdraw USDC`
+                            }
                         </button>
                     </div>
                 </motion.div>

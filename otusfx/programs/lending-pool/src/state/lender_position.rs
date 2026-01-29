@@ -27,6 +27,10 @@ pub struct LenderPosition {
     pub cumulative_usdc_withdrawn: u64,
     /// Cumulative USD1 withdrawn
     pub cumulative_usd1_withdrawn: u64,
+    /// Privacy mode enabled
+    pub is_private: bool,
+    /// Number of privacy commitments created
+    pub privacy_commitment_count: u32,
     /// PDA bump
     pub bump: u8,
 }
@@ -45,6 +49,8 @@ impl LenderPosition {
         8 + // cumulative_usd1_deposited
         8 + // cumulative_usdc_withdrawn
         8 + // cumulative_usd1_withdrawn
+        1 + // is_private
+        4 + // privacy_commitment_count
         1; // bump
 
     pub const SEEDS_PREFIX: &'static [u8] = b"lender_position";

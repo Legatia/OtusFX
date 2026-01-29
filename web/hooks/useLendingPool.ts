@@ -6,10 +6,8 @@ import { Program, AnchorProvider, Idl, BN } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import lendingIdl from "../idl/lending_pool.json";
-// @ts-ignore - Privacy Cash SDK types
-import { PrivacyCash } from "privacycash";
-// @ts-ignore - ShadowWire SDK types
-import { ShadowWire } from "@radr/shadowwire";
+// Privacy SDK mocks (replace with real SDKs when deployed)
+import { PrivacyCash, ShadowWire } from "../lib/privacy-mock";
 
 const PROGRAM_ID = new PublicKey(lendingIdl.address);
 

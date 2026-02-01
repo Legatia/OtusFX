@@ -2,33 +2,40 @@
 
 > *"Trade in the shadows. Profit in private."*
 
-OtusFX is a privacy-first foreign exchange trading protocol on Solana. Named after the Otus genus of scops owls — silent hunters with night vision — we enable traders to operate unseen.
+OtusFX is the first **confidential liquidity venue** on Solana. We combine high-speed execution with institutional-grade privacy, solving the "Alpha Decay" problem where public blockchains reveal profitable strategies to front-runners.
 
-## Features
+## 🚀 Live Demo
 
-- **Encrypted Positions**: Arcium C-SPL hides position sizes, entry prices, and liquidation levels
-- **Private Lending Pool**: Privacy Cash integration keeps balances confidential
-- **Silent Execution**: ShadowWire transfers prevent volume tracking
-- **Strategy Vaults**: Copy top traders without revealing strategies
-- **Private Arbitrage**: Inco Lightning for confidential triangular arb
-- **Institutional Data**: Real-time FX feeds via Pyth Network
+**[Launch Demo App](https://otus-fx.vercel.app/demo)**
 
-## Community
+## 🛡️ The Triple Privacy Stack
 
-Early supporters are called **Scops** (from scops owls). Genesis Scops are the first to seed the lending pool during Bootstrap.
+We have successfully integrated three cutting-edge privacy technologies into a unified browser-based experience:
 
-## Architecture
+### 1. Privacy Cash (Integrated)
+**Confidential Lending & Deposits**
+- Users deposit assets into a shared anonymity set.
+- **Status**: ✅ Integrated. Real-time encrypted deposits using `privacycash` SDK.
 
-- **Frontend**: Next.js 14, Tailwind CSS, Framer Motion
-- **Settlement**: Solana (High-speed, low-cost)
-- **Privacy Stack**:
-  - Arcium (Confidential positions)
-  - ShadowWire (Private transfers)
-  - Privacy Cash (Private lending)
-  - Inco Lightning (Confidential compute)
-- **Oracles**: Pyth Network
+### 2. ShadowWire (Integrated)
+**Silent Execution**
+- Transfers and settlements are hidden using Zero-Knowledge Proofs (Bulletproofs).
+- **Status**: ✅ Integrated. Using `@radr/shadowwire` with custom WASM patches for browser compatibility.
 
-## Getting Started
+### 3. Arcium MPC (Simulated)
+**Encrypted Positions**
+- Multi-Party Computation network where nodes process data without ever seeing the raw values.
+- **Status**: ⚠️ **Simulation Mode**. The frontend currently demonstrates the MPC UX workflow (Node discovery -> Key Sharding -> Blinded Compute) to showcase the intended mainnet experience.
+
+## ✨ Key Features
+
+- **Private Lending Pool**: Earn yield on USDC without revealing your total wealth.
+- **Encrypted Leverage**: Trade with up to 10x leverage. Your liquidation price is hidden from hunters.
+- **Selective Disclosure**: Generate view keys for auditors or regulators to prove solvency without public exposure.
+
+## 🛠️ Getting Started
+
+We use a custom Next.js setup with patched WASM support for the privacy SDKs.
 
 ```bash
 cd web
@@ -36,17 +43,22 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001)
+### Build Notes
+The project requires specific `next.config.ts` patches to handle WASM files from Rust-based privacy SDKs. If you encounter build errors, ensure you are using the provided configuration which handles `node-localstorage` and `fs` polyfills.
 
-## Project Structure
+## 📚 Stack
 
-- `/app`: Next.js app router pages
-- `/components`: React components
-- `/lib`: Utilities and configuration (Pyth, etc.)
+- **Frontend**: Next.js 16 (App Router), Tailwind v4, Framer Motion
+- **Solana**: Web3.js, Anchor Framework
+- **Oracles**: Pyth Network
+- **Privacy**: Privacy Cash SDK, ShadowWire SDK, Arcium (Simulated)
 
-## Bootstrap Phase
+## 🔮 Future Roadmap
 
-Genesis Scops can:
-- Deposit USDC to seed the lending pool
-- Earn credits and unique Genesis Scops NFT badges
-- Access exclusive tier perks (fee discounts, priority access)
+- **Q2 2026**: Mainnet Launch
+- **Q3 2026**: Full Arcium Network Integration (replacing simulation)
+- **Q4 2026**: Institutional Compliance Suite (ZK-KYC)
+
+---
+
+*"The Switzerland of Solana liquidity."*

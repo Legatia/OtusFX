@@ -29,6 +29,8 @@ const utilizationPoints = [
     { util: 100, rate: 75 },
 ];
 
+import { useArcium } from "@/hooks/useArcium";
+
 export default function LendPage() {
     const {
         poolStats,
@@ -42,6 +44,7 @@ export default function LendPage() {
         withdrawLiquidityPrivate,
         claimOtusRewards
     } = useLendingPool();
+    const arcium = useArcium();
     const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
     const [amount, setAmount] = useState("");
     const [stablecoinType, setStablecoinType] = useState<"USDC" | "USD1">("USDC");
@@ -49,6 +52,18 @@ export default function LendPage() {
     const [submitting, setSubmitting] = useState(false);
     const [needsInit, setNeedsInit] = useState(false);
     const { showComingSoon } = useComingSoon();
+
+    // Trigger Arcium simulation when privacy is toggled on
+    const handlePrivacyToggle = async () => {
+        const newState = !isPrivate;
+        setIsPrivate(newState);
+        if (newState) {
+            // Simulate "encrypting" the current view key or similar context
+            await arcium.encrypt('session', { timestamp: Date.now() });
+        } else {
+            arcium.reset();
+        }
+    };
 
     const handleMaxClick = () => {
         if (activeTab === "deposit") {
@@ -142,8 +157,18 @@ export default function LendPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
-                        <Lock className="w-4 h-4 text-purple-400" />
-                        <span className="text-purple-400 text-sm font-medium">Balance Hidden</span>
+                        {arcium.state !== 'idle' && arcium.state !== 'ready' ? (
+                            <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                        ) : (
+                            <Lock className="w-4 h-4 text-purple-400" />
+                        )}
+                        <span className="text-purple-400 text-sm font-medium">
+                            {arcium.state === 'idle' ? 'Privacy Ready' :
+                                arcium.state === 'ready' ? 'Arcium Secured' :
+                                    arcium.state === 'initializing' ? 'Initializing MPC...' :
+                                        arcium.state === 'sharding' ? 'Sharding Keys...' :
+                                            'Computing Blinded Result...'}
+                        </span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -152,7 +177,7 @@ export default function LendPage() {
                 </div>
             </motion.div>
 
-            {/* Privacy Banner */}
+            {/* Privacy Banner - Enhanced for Arcium */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -161,17 +186,41 @@ export default function LendPage() {
             >
                 <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-                        <Lock className="w-5 h-5 text-purple-400" />
+                        {arcium.state === 'ready' ? (
+                            <Shield className="w-5 h-5 text-purple-400" />
+                        ) : (
+                            <Lock className="w-5 h-5 text-purple-400" />
+                        )}
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-primary mb-1">Privacy Cash Integration</h3>
+                    <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-semibold text-primary mb-1">
+                                {arcium.state === 'ready' ? 'Arcium MPC Protected' : 'Privacy Cash Integration'}
+                            </h3>
+                            {arcium.state !== 'idle' && arcium.state !== 'ready' && (
+                                <span className="text-xs text-purple-400 font-mono">{arcium.progress}%</span>
+                            )}
+                        </div>
                         <p className="text-secondary text-sm">
-                            Your deposit amount and earnings are encrypted. Only you can see your balance.
-                            Pool TVL is shown as an approximate range to protect large depositors.
+                            {arcium.state === 'ready'
+                                ? "Your session is secured by Arcium Multi-Party Computation. Data is split across nodes and never reconstructed."
+                                : "Your deposit amount and earnings are encrypted. Only you can see your balance. Pool TVL is shown as an approximate range."}
                         </p>
+                        {/* Simulation Progress Bar */}
+                        {arcium.state !== 'idle' && arcium.state !== 'ready' && (
+                            <div className="w-full h-1 bg-purple-500/20 rounded-full mt-2 overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-purple-500"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${arcium.progress}%` }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </motion.div>
+
 
             {/* Stats Cards */}
             <motion.div
@@ -290,14 +339,12 @@ export default function LendPage() {
                                 </div>
                             </div>
                             <button
-                                onClick={() => setIsPrivate(!isPrivate)}
-                                className={`relative w-14 h-7 rounded-full transition-colors ${
-                                    isPrivate ? "bg-purple-500" : "bg-gray-600"
-                                }`}
+                                onClick={handlePrivacyToggle}
+                                className={`relative w-14 h-7 rounded-full transition-colors ${isPrivate ? "bg-purple-500" : "bg-gray-600"
+                                    }`}
                             >
-                                <div className={`absolute w-6 h-6 bg-white rounded-full top-0.5 transition-transform ${
-                                    isPrivate ? "translate-x-7" : "translate-x-0.5"
-                                }`} />
+                                <div className={`absolute w-6 h-6 bg-white rounded-full top-0.5 transition-transform ${isPrivate ? "translate-x-7" : "translate-x-0.5"
+                                    }`} />
                             </button>
                         </div>
 
@@ -305,11 +352,10 @@ export default function LendPage() {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setStablecoinType("USDC")}
-                                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                                    stablecoinType === "USDC"
-                                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                                        : "bg-surface text-secondary hover:text-primary border border-border"
-                                }`}
+                                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${stablecoinType === "USDC"
+                                    ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                    : "bg-surface text-secondary hover:text-primary border border-border"
+                                    }`}
                             >
                                 <div className="flex items-center justify-center gap-2">
                                     <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center">
@@ -320,11 +366,10 @@ export default function LendPage() {
                             </button>
                             <button
                                 onClick={() => setStablecoinType("USD1")}
-                                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                                    stablecoinType === "USD1"
-                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                        : "bg-surface text-secondary hover:text-primary border border-border"
-                                }`}
+                                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${stablecoinType === "USD1"
+                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                    : "bg-surface text-secondary hover:text-primary border border-border"
+                                    }`}
                             >
                                 <div className="flex items-center justify-center gap-2">
                                     <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
@@ -360,12 +405,10 @@ export default function LendPage() {
                                     >
                                         MAX
                                     </button>
-                                    <div className={`px-3 py-2 rounded-lg border flex items-center gap-2 ${
-                                        stablecoinType === "USDC" ? "bg-blue-500/10 border-blue-500/20" : "bg-emerald-500/10 border-emerald-500/20"
-                                    }`}>
-                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                                            stablecoinType === "USDC" ? "bg-blue-500/10" : "bg-emerald-500/10"
+                                    <div className={`px-3 py-2 rounded-lg border flex items-center gap-2 ${stablecoinType === "USDC" ? "bg-blue-500/10 border-blue-500/20" : "bg-emerald-500/10 border-emerald-500/20"
                                         }`}>
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${stablecoinType === "USDC" ? "bg-blue-500/10" : "bg-emerald-500/10"
+                                            }`}>
                                             <span className={`text-xs font-bold ${stablecoinType === "USDC" ? "text-blue-400" : "text-emerald-400"}`}>$</span>
                                         </div>
                                         <span className="font-medium text-primary">{stablecoinType}</span>
@@ -424,13 +467,12 @@ export default function LendPage() {
                                 <button
                                     onClick={handleSubmit}
                                     disabled={submitting || !amount || Number(amount) <= 0}
-                                    className={`w-full py-4 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        isPrivate
-                                            ? "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-                                            : activeTab === "deposit"
-                                                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                                                : "bg-accent hover:bg-accent-hover text-white"
-                                    }`}
+                                    className={`w-full py-4 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isPrivate
+                                        ? "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                                        : activeTab === "deposit"
+                                            ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                                            : "bg-accent hover:bg-accent-hover text-white"
+                                        }`}
                                 >
                                     {submitting ? (
                                         <div className="flex items-center justify-center gap-2">

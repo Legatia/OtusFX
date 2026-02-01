@@ -8,14 +8,12 @@ const nextConfig: NextConfig = {
   turbopack: {},
 
   // Exclude WASM-heavy packages from bundling - they'll be loaded at runtime
-  serverExternalPackages: [
-    '@radr/shadowwire',
-    '@lightprotocol/hasher.rs',
-    'privacycash',
-  ],
+  serverExternalPackages: [],
+
+  transpilePackages: ['@radr/shadowwire', 'privacycash', '@lightprotocol/hasher.rs'],
 
   webpack: (config, { isServer }) => {
-    // Ignore WASM files in client bundle
+    // Ignore WASM inputs in client bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -25,6 +23,13 @@ const nextConfig: NextConfig = {
         stream: false,
         os: false,
       };
+
+      // Force ignore fs/path for packages that bad-behave
+      config.plugins.push(
+        new config.webpack.IgnorePlugin({
+          resourceRegExp: /^(fs|path|child_process|node-localstorage|write-file-atomic)$/
+        })
+      );
     }
 
     config.experiments = {

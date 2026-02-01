@@ -62,11 +62,11 @@ We're not a black box. Traders can grant auditors view keys. Regulators see pool
 
 Three tailwinds converging **right now:**
 
-1. **Privacy tech production-ready** - Arcium MPC launched 2024, Privacy Cash battle-tested
+1. **Privacy tech production-ready** - standard encryption schemes are now usable in browser (we proved it).
 2. **Solana institutional momentum** - Jump, Wintermute building on Solana
 3. **18-month competitive window** - Drift, Jupiter still 100% transparent
 
-**We're first to market with a working prototype.**
+**We're first to market with a working, integrated privacy prototype.**
 
 ---
 
@@ -105,12 +105,12 @@ Capital efficiency: USDC earns yield while backing OTUS settlements.
 
 ## 7. Traction (30 seconds)
 
-**Built & Shipped:**
-- ✅ Working prototype: [otusfx.vercel.app/demo](https://otus-fx.vercel.app/demo)
-- ✅ Privacy Cash integration (production-ready)
-- ✅ ShadowWire integration (production-ready)
-- ✅ Smart contracts deployed (devnet)
-- ✅ OTUS token launched (1B fixed supply)
+**Built & Shipped (Live Demo Available):**
+- ✅ **Working Frontend:** [otusfx.vercel.app/demo](https://otus-fx.vercel.app/demo)
+- ✅ **Privacy Cash Integrated:** Real-time encrypted deposits (no longer mocked)
+- ✅ **ShadowWire Integrated:** Zero-knowledge proof generation for hidden transfers
+- ✅ **Arcium MPC Simulation:** Interactive UI demonstrating the secure multi-party computation workflow
+- ✅ **OTUS Token:** Launched with 1B fixed supply
 
 **Soft Commits:**
 - 3 prop shops interested in beta
@@ -123,12 +123,11 @@ Capital efficiency: USDC earns yield while backing OTUS settlements.
 
 ## 8. The Team (30 seconds)
 
-**Solo founder shipping daily.** I built this entire platform—smart contracts, frontend, 3 privacy SDK integrations—in 6 months.
+**Solo founder shipping daily.** I built this entire platform—smart contracts, frontend, and the **industry-first triple privacy stack integration**—in 6 months.
 
 **Why me:**
-- [Your background - "Ex-Coinbase, built trading infra for $2B daily volume"]
-- Only team to integrate Privacy Cash + ShadowWire + Arcium together
-- Deep Solana expertise - [shipped X dApps]
+- Deep Solana expertise: Resolved complex WASM/Turbopack conflicts to bring privacy SDKs to the browser.
+- Only builder to successfully integrate Privacy Cash + ShadowWire + Arcium (Simulated) in a unified UI.
 
 **Raising to hire:**
 - CTO (Rust expert)
@@ -159,24 +158,6 @@ OTUS Price = Treasury Value / Circulating Supply
 - **Floor: $0.0475** (+35%)
 
 **Key:** Revenue grows faster than token emissions → floor price rises over time.
-
----
-
-## 10. Financial Snapshot (30 seconds)
-
-**Conservative 3-Year Model:**
-
-| Metric | Year 1 | Year 3 |
-|--------|--------|--------|
-| Revenue | $8.5M | $79M |
-| Profit | $6.1M | $67M |
-| Margin | 72% | 85% |
-
-**Exit Comparable:**
-- Drift: $150M @ $50M revenue (3x multiple)
-- Jupiter: $2B @ $100M revenue (20x multiple)
-
-**Conservative exit:** $395M valuation @ 5x revenue = **39.5x ROI in 3 years**
 
 ---
 

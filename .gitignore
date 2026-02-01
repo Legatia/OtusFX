@@ -26,3 +26,12 @@ pnpm-debug.log*
 
 # Vercel
 .vercel
+
+# Dev Documentation & Scratchpads
+*_TODO.md
+*_PLAN.md
+*_SUMMARY.md
+*_CHECKLIST.md
+FINANCIALS_TEMPLATE.md
+APP_IMPROVEMENTS.md
+PRIVACY_INTEGRATION_*.md
